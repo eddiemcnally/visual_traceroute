@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'network_utils_ui.ui'
 #
-# Created: Thu Mar  5 22:33:04 2015
+# Created: Mon Apr  6 15:49:22 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -62,6 +62,9 @@ class Ui_networkutils(object):
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Courier New"))
         self.pingTextBrowser.setFont(font)
+        self.pingTextBrowser.setTabChangesFocus(False)
+        self.pingTextBrowser.setAcceptRichText(False)
+        self.pingTextBrowser.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextBrowserInteraction|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.pingTextBrowser.setObjectName(_fromUtf8("pingTextBrowser"))
         self.tabWidget.addTab(self.pingTab, _fromUtf8(""))
         self.dns = QtGui.QWidget()
@@ -120,7 +123,7 @@ class Ui_networkutils(object):
         self.close.setObjectName(_fromUtf8("close"))
         networkutils.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(networkutils)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 27))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -137,7 +140,7 @@ class Ui_networkutils(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(networkutils)
-        self.tabWidget.setCurrentIndex(4)
+        self.tabWidget.setCurrentIndex(1)
         self.traceroutetab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(networkutils)
 

@@ -8,13 +8,14 @@ from PyQt4.QtWebKit import *
 from geolocate import GeolocateQuery, GeolocateFields
 from traceroute import *
 
-from utils import CommandTypes, WorkerThread, AsynchProcess
+from utils import CommandTypes, AsynchProcess
 import network_utils_ui
 
 # todo
-# - add a busy widget to tabs
 # - unit testing
-# move stuff to config file (commands, google maps key, etc)
+# - fix up invalid url handling (
+# - move stuff to config file (commands, google maps key, etc)
+# - document
 
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
@@ -40,6 +41,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.geolocate_handler = None
         self.traceroute_handler = None
 
+        self.pingTextBrowser
         self.commands_to_run = {
             CommandTypes.Ping: "ping -c 10",
             CommandTypes.TraceRoute: "traceroute",
@@ -110,7 +112,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def add_results(self, command_type, command_output):
         if command_type == CommandTypes.Ping:
-            self.pingTextBrowser.append(command_output)
+            ping_output = self.pingTextBrowser.toPlainText() + command_output
+            self.pingTextBrowser.clear()
+            self.pingTextBrowser.append(ping_output)
         elif command_type == CommandTypes.Dig:
             self.dnsTextBrowser.clear()
             self.dnsTextBrowser.setText(command_output)
@@ -137,10 +141,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def handle_trace_route(self, output):
         self.tracerouteTextBrowser.clear()
         self.tracerouteTextBrowser.setText(output)
-
-
-        # now update the
-
 
         cleaned_up = parse_traceroute_output(output)
 
