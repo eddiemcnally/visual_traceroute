@@ -112,9 +112,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def add_results(self, command_type, command_output):
         if command_type == CommandTypes.Ping:
-            ping_output = self.pingTextBrowser.toPlainText() + command_output
-            self.pingTextBrowser.clear()
-            self.pingTextBrowser.append(ping_output)
+            self.pingTextBrowser.moveCursor(QTextCursor.End)
+            self.pingTextBrowser.insertPlainText(command_output)
+            self.pingTextBrowser.moveCursor(QTextCursor.End)
         elif command_type == CommandTypes.Dig:
             self.dnsTextBrowser.clear()
             self.dnsTextBrowser.setText(command_output)
