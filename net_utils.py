@@ -13,9 +13,12 @@ import network_utils_ui
 
 # todo
 # - unit testing
-# - fix up invalid url handling (
+# - fix up invalid url handling
 # - move stuff to config file (commands, google maps key, etc)
 # - document
+# - async handling of stderr (same as stdout)
+# - fix the close button
+# - add scroll bars to text browsers
 
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
@@ -47,43 +50,36 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             CommandTypes.TraceRoute: "traceroute",
             CommandTypes.Dig: "dig",
             CommandTypes.nslookup: "nslookup",
-            CommandTypes.WebServer: "iiiiiiiii",
             CommandTypes.Geolocate: "unused",
-
         }
 
 
     def perform_ping(self, url):
         ping_command = self.commands_to_run[CommandTypes.Ping] + " " + url
-        self.pingTextBrowser.setText("Working...")
         self.ping_handler = AsynchProcess(CommandTypes.Ping, ping_command)
         self.connect(self.ping_handler, QtCore.SIGNAL(str(ping_command)), self.add_results)
         self.ping_handler.start()
 
     def perform_dns(self, url):
         dig_command = self.commands_to_run[CommandTypes.Dig] + " " + url
-        self.dnsTextBrowser.setText("Working...")
-        self.dns_handler = WorkerThread(CommandTypes.Dig, dig_command)
+        self.dns_handler = AsynchProcess(CommandTypes.Dig, dig_command)
         self.connect(self.dns_handler, QtCore.SIGNAL(str(dig_command)), self.add_results)
         self.dns_handler.start()
 
     def perform_nslookup(self, url):
         nslookup_command = self.commands_to_run[CommandTypes.nslookup] + " " + url
-        self.nslookupTextBrowser.setText("Working...")
-        self.nslookup_handler = WorkerThread(CommandTypes.nslookup, nslookup_command)
+        self.nslookup_handler = AsynchProcess(CommandTypes.nslookup, nslookup_command)
         self.connect(self.nslookup_handler, QtCore.SIGNAL(str(nslookup_command)), self.add_results)
         self.nslookup_handler.start()
 
     def perform_geolocate(self, url):
-        self.geolocateTextBrowser.setText("Working...")
         self.geolocate_handler = GeolocateQuery(url, None)
         self.connect(self.geolocate_handler, QtCore.SIGNAL(str(CommandTypes.Geolocate)), self.add_results)
         self.geolocate_handler.start()
 
     def perform_traceroute(self, url):
         traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
-        self.tracerouteTextBrowser.setText("Working...")
-        self.traceroute_handler = WorkerThread(CommandTypes.TraceRoute, traceroute_command)
+        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command)
         self.connect(self.traceroute_handler, QtCore.SIGNAL(str(traceroute_command)), self.add_results)
         self.traceroute_handler.start()
 
@@ -94,7 +90,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         if url:
 
             # ping
-            self.perform_ping(url)
+            #self.perform_ping(url)
 
             # dig
             #self.perform_dns(url)
@@ -103,7 +99,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             #self.perform_nslookup(url)
 
             # traceroute
-            #self.perform_traceroute(url)
+            self.perform_traceroute(url)
 
             # geolocate
             #self.perform_geolocate(url)
@@ -114,13 +110,12 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         if command_type == CommandTypes.Ping:
             self.pingTextBrowser.moveCursor(QTextCursor.End)
             self.pingTextBrowser.insertPlainText(command_output)
-            self.pingTextBrowser.moveCursor(QTextCursor.End)
         elif command_type == CommandTypes.Dig:
-            self.dnsTextBrowser.clear()
-            self.dnsTextBrowser.setText(command_output)
+            self.dnsTextBrowser.moveCursor(QTextCursor.End)
+            self.dnsTextBrowser.insertPlainText(command_output)
         elif command_type == CommandTypes.nslookup:
-            self.nslookupTextBrowser.clear()
-            self.nslookupTextBrowser.setText(command_output)
+            self.nslookupTextBrowser.moveCursor(QTextCursor.End)
+            self.nslookupTextBrowser.insertPlainText(command_output)
         elif command_type == CommandTypes.Geolocate:
             self.geolocateTextBrowser.clear()
             disp = ""
