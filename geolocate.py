@@ -7,6 +7,7 @@ from utils import CommandTypes
 
 
 class GeolocateQuery(QThread):
+    '''Class to take an IP address and/or URL, and retrieve goelocate information'''
     def __init__(self, url, ip_addr):
         QThread.__init__(self)
         self.url = url
