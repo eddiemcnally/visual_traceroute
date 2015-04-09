@@ -223,7 +223,7 @@
      <string>Do it</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="close">
+   <widget class="QPushButton" name="closePushButton">
     <property name="geometry">
      <rect>
       <x>660</x>

@@ -13,19 +13,25 @@ import network_utils_ui
 
 # todo
 # - unit testing
+# - only works with IP4, look at IP6
 # - fix up invalid url handling
 # - move stuff to config file (commands, google maps key, etc)
-# - document
+# - documentation
 # - async handling of stderr (same as stdout)
 # - fix the close button
 # - add scroll bars to text browsers
+# - fix up traceroute output parsing
+# - grey out and disable the DoIt button until all processes have exited/finished
 
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
         super(NetUtil, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
+
+        #set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
+        self.closePushButton.clicked.connect(app.exit)
 
         hbx = QHBoxLayout()
         self.visualTraceRoute.setLayout(hbx)
@@ -33,7 +39,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         web.load(QUrl("https://www.google.ie"))
         hbx.addWidget(web)
         web.show()
-
 
         # set up worker threads for running commands
         self.ping_handler = None
@@ -51,7 +56,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             CommandTypes.Dig: "dig",
             CommandTypes.nslookup: "nslookup",
             CommandTypes.Geolocate: "unused",
-        }
+            }
+
 
 
     def perform_ping(self, url):
@@ -134,17 +140,21 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             self.handle_trace_route(command_output)
 
     def handle_trace_route(self, output):
-        self.tracerouteTextBrowser.clear()
-        self.tracerouteTextBrowser.setText(output)
+        self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
+        self.tracerouteTextBrowser.insertPlainText(output)
 
-        cleaned_up = parse_traceroute_output(output)
+        # parse line for IP addresses,and save for later
+        #cleaned_up = parse_traceroute_output(output)
 
-        route = ""
-        i = 1
-        for hop in cleaned_up:
-            route = route + str(i) + " : " + hop + os.linesep
-            i += 1
-        self.tracerouteTextBrowser.setText(route)
+        #route = ""
+        #i = 1
+        #for hop in cleaned_up:
+            #route = route + str(i) + " : " + hop + os.linesep
+            #i += 1
+        #self.tracerouteTextBrowser.setText(route)
+
+
+
 
 
     def get_url(self):

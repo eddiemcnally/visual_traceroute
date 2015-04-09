@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'network_utils_ui.ui'
 #
-# Created: Mon Apr  6 15:49:22 2015
+# Created: Thu Apr  9 20:35:43 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -118,9 +118,9 @@ class Ui_networkutils(object):
         self.doLookupPushButton = QtGui.QPushButton(self.centralwidget)
         self.doLookupPushButton.setGeometry(QtCore.QRect(370, 20, 98, 27))
         self.doLookupPushButton.setObjectName(_fromUtf8("doLookupPushButton"))
-        self.close = QtGui.QPushButton(self.centralwidget)
-        self.close.setGeometry(QtCore.QRect(660, 550, 98, 27))
-        self.close.setObjectName(_fromUtf8("close"))
+        self.closePushButton = QtGui.QPushButton(self.centralwidget)
+        self.closePushButton.setGeometry(QtCore.QRect(660, 550, 98, 27))
+        self.closePushButton.setObjectName(_fromUtf8("closePushButton"))
         networkutils.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(networkutils)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 27))
@@ -156,7 +156,7 @@ class Ui_networkutils(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.nslookup), _translate("networkutils", "nslookup", None))
         self.urlLineEdit.setPlaceholderText(_translate("networkutils", "Enter URL or IP Address", None))
         self.doLookupPushButton.setText(_translate("networkutils", "Do it", None))
-        self.close.setText(_translate("networkutils", "Close", None))
+        self.closePushButton.setText(_translate("networkutils", "Close", None))
         self.menuFile.setTitle(_translate("networkutils", "File", None))
         self.menuHelp.setTitle(_translate("networkutils", "Help", None))
         self.actionAbout.setText(_translate("networkutils", "About", None))

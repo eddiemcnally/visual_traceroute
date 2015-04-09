@@ -64,13 +64,13 @@ class AsynchProcess(QtCore.QThread):
         while True:
             time.sleep(.2)
 
+            if process.poll() is not None and stdout_queue.empty():
+                break
+
             # Show what we received from standard output.
             while not stdout_queue.empty():
                 line = stdout_queue.get()
                 self.emit(QtCore.SIGNAL(str(self.command)), self.command_type, line)
-
-            if process.poll() is not None and stdout_queue.empty() and not stdout_reader.isRunning():
-                break
 
         # cleanup
         stdout_reader.terminate()
