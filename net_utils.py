@@ -7,21 +7,22 @@ from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 from geolocate import GeolocateQuery, GeolocateFields
 from traceroute import *
+from utils import ProcessManager
 
 from utils import CommandTypes, AsynchProcess
 import network_utils_ui
 
 # todo
 # - unit testing
+# - move to Qt5
 # - only works with IP4, look at IP6
 # - fix up invalid url handling
 # - move stuff to config file (commands, google maps key, etc)
 # - documentation
 # - async handling of stderr (same as stdout)
 # - fix the close button
-# - add scroll bars to text browsers
 # - fix up traceroute output parsing
-# - grey out and disable the DoIt button until all processes have exited/finished
+
 
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
@@ -29,10 +30,14 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.setupUi(self)
         self.statusbar.show()
 
+        self.process_manager = ProcessManager()
+        self.connect(self.process_manager, QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
+
         #set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
         self.closePushButton.clicked.connect(app.exit)
 
+        # set up for visual traceroute
         hbx = QHBoxLayout()
         self.visualTraceRoute.setLayout(hbx)
         web = QWebView()
@@ -49,7 +54,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.geolocate_handler = None
         self.traceroute_handler = None
 
-        self.pingTextBrowser
         self.commands_to_run = {
             CommandTypes.Ping: "ping -c 10",
             CommandTypes.TraceRoute: "traceroute",
@@ -62,41 +66,43 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def perform_ping(self, url):
         ping_command = self.commands_to_run[CommandTypes.Ping] + " " + url
-        self.ping_handler = AsynchProcess(CommandTypes.Ping, ping_command)
+        self.ping_handler = AsynchProcess(CommandTypes.Ping, ping_command, self.process_manager)
         self.connect(self.ping_handler, QtCore.SIGNAL(str(ping_command)), self.add_results)
         self.ping_handler.start()
 
     def perform_dns(self, url):
         dig_command = self.commands_to_run[CommandTypes.Dig] + " " + url
-        self.dns_handler = AsynchProcess(CommandTypes.Dig, dig_command)
+        self.dns_handler = AsynchProcess(CommandTypes.Dig, dig_command, self.process_manager)
         self.connect(self.dns_handler, QtCore.SIGNAL(str(dig_command)), self.add_results)
         self.dns_handler.start()
 
     def perform_nslookup(self, url):
         nslookup_command = self.commands_to_run[CommandTypes.nslookup] + " " + url
-        self.nslookup_handler = AsynchProcess(CommandTypes.nslookup, nslookup_command)
+        self.nslookup_handler = AsynchProcess(CommandTypes.nslookup, nslookup_command, self.process_manager)
         self.connect(self.nslookup_handler, QtCore.SIGNAL(str(nslookup_command)), self.add_results)
         self.nslookup_handler.start()
 
     def perform_geolocate(self, url):
-        self.geolocate_handler = GeolocateQuery(url, None)
+        self.geolocate_handler = GeolocateQuery(url, None, self.process_manager)
         self.connect(self.geolocate_handler, QtCore.SIGNAL(str(CommandTypes.Geolocate)), self.add_results)
         self.geolocate_handler.start()
 
     def perform_traceroute(self, url):
         traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
-        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command)
+        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command, self.process_manager)
         self.connect(self.traceroute_handler, QtCore.SIGNAL(str(traceroute_command)), self.add_results)
         self.traceroute_handler.start()
 
     def handle_do_it_button(self):
         self.statusbar.clearMessage()
+        self.statusbar.showMessage("Working...")
+        self.doLookupPushButton.setEnabled(False)
 
         url = self.get_url()
         if url:
 
             # ping
-            #self.perform_ping(url)
+            self.perform_ping(url)
 
             # dig
             #self.perform_dns(url)
@@ -105,12 +111,20 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             #self.perform_nslookup(url)
 
             # traceroute
-            self.perform_traceroute(url)
+            #self.perform_traceroute(url)
 
             # geolocate
             #self.perform_geolocate(url)
         else:
             self.statusbar.showMessage("URL is empty", 5000)
+
+
+    def all_processes_terminated(self):
+        self.doLookupPushButton.setEnabled(True)
+        self.doLookupPushButton.update()
+        self.statusbar.clearMessage()
+        self.statusbar.showMessage("Complete!")
+
 
     def add_results(self, command_type, command_output):
         if command_type == CommandTypes.Ping:
@@ -160,6 +174,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def get_url(self):
         # todo - validate url input and prompt dialog
         return self.urlLineEdit.text()
+
+
+
 
 
 app = QApplication(sys.argv)

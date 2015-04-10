@@ -17,6 +17,27 @@ class CommandTypes(Enum):
     Ping = 7
 
 
+class ProcessManager(QObject):
+    ''' A class that keeps track of the running processes '''
+    def __init__(self):
+        QObject.__init__(self)
+        self.process_list = []
+        self.signal_name = "all_processes_terminated"
+
+    def register_process(self, process):
+        print("register process " + str(process))
+        self.process_list.append(process)
+
+    def deregister_process(self, process):
+        print("deregister process " + str(process))
+
+        self.process_list.remove(process)
+        if len(self.process_list) == 0:
+            self.emit(QtCore.SIGNAL(self.signal_name))
+
+
+
+
 class AsynchronousFileReader(QtCore.QThread):
     '''
     Helper class to implement asynchronous reading of a file
@@ -43,10 +64,11 @@ class AsynchProcess(QtCore.QThread):
     '''Main asynch class: uses subprocess to execute the command, polls the stdout queue and fires
     signals'''
 
-    def __init__(self, command_type, command):
+    def __init__(self, command_type, command, process_manager):
         QThread.__init__(self)
         self.command = command
         self.command_type = command_type
+        self.process_manager = process_manager
 
 
     def run(self):
@@ -54,6 +76,7 @@ class AsynchProcess(QtCore.QThread):
         Example of how to consume standard output and standard error of
         a subprocess asynchronously without risk on deadlocking.
         '''
+        self.process_manager.register_process(self)
         process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         # Launch the asynchronous readers of the process' stdout.
@@ -63,7 +86,6 @@ class AsynchProcess(QtCore.QThread):
 
         while True:
             time.sleep(.2)
-
             if process.poll() is not None and stdout_queue.empty():
                 break
 
@@ -72,6 +94,9 @@ class AsynchProcess(QtCore.QThread):
                 line = stdout_queue.get()
                 self.emit(QtCore.SIGNAL(str(self.command)), self.command_type, line)
 
+        self.process_manager.deregister_process(self)
+
         # cleanup
         stdout_reader.terminate()
         process.stdout.close()
+
