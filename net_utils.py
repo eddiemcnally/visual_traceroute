@@ -6,7 +6,9 @@ from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 
-from geolocate import GeolocateQuery, GeolocateFields
+import simplejson as json
+
+from geolocate import GeolocateQuery
 from utils import ProcessManager
 from utils import CommandTypes, AsynchProcess
 import network_utils_ui
@@ -142,7 +144,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 # self.perform_traceroute(url)
 
                 # geolocate
-                #self.perform_geolocate(url)
+                self.perform_geolocate(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
         except Exception as e:
@@ -171,26 +173,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 self.nslookupTextBrowser.moveCursor(QTextCursor.End)
                 self.nslookupTextBrowser.insertPlainText(command_output)
             elif command_type == CommandTypes.Geolocate:
-                self.geolocateTextBrowser.clear()
-                disp = ""
-                disp = disp + "Latitude      : " + str(
-                    self.geolocate_handler.get_field(GeolocateFields.Latitude)) + os.linesep
-                disp = disp + "Longitude     : " + str(
-                    self.geolocate_handler.get_field(GeolocateFields.Longitude)) + os.linesep
-                disp = disp + "ASName        : " + str(
-                    self.geolocate_handler.get_field(GeolocateFields.ASNumberName)) + os.linesep
-                disp = disp + "ISP           : " + self.geolocate_handler.get_field(GeolocateFields.ISP) + os.linesep
-                disp = disp + "City          : " + self.geolocate_handler.get_field(GeolocateFields.City) + os.linesep
-                disp = disp + "RegionName    : " + self.geolocate_handler.get_field(
-                    GeolocateFields.RegionName) + os.linesep
-                disp = disp + "Region        : " + self.geolocate_handler.get_field(GeolocateFields.Region) + os.linesep
-                disp = disp + "Country       : " + self.geolocate_handler.get_field(
-                    GeolocateFields.Country) + os.linesep
-                disp = disp + "Country Code  : " + self.geolocate_handler.get_field(
-                    GeolocateFields.CountryCode) + os.linesep
-                disp = disp + "Timezone      : " + self.geolocate_handler.get_field(
-                    GeolocateFields.Timezone) + os.linesep
-                self.geolocateTextBrowser.setText(disp)
+                text = json.dumps(command_output, sort_keys = True, indent = 4)
+                self.geolocateTextBrowser.moveCursor(QTextCursor.End)
+                self.geolocateTextBrowser.insertPlainText(str(text))
             elif command_type == CommandTypes.TraceRoute:
                 self.handle_trace_route(command_output)
         except Exception as e:
