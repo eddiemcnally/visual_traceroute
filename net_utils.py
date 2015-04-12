@@ -53,7 +53,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.dns_handler = None
         self.nslookup_handler = None
         self.traceroute_handler = None
-        self.webserver_handler = None
         self.geolocate_handler = None
         self.traceroute_handler = None
 
@@ -122,8 +121,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def handle_do_it_button(self):
         try:
-            self.updaterMutex.lock()
-
             self.statusbar.clearMessage()
             self.statusbar.showMessage("Working...")
             self.doLookupPushButton.setEnabled(False)
@@ -151,8 +148,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             QMessageBox.critical(self,
                                  "Critical",
                                  "Problem performing network lookup : " + str(e))
-        finally:
-            self.updaterMutex.unlock()
 
 
     def all_processes_terminated(self):
@@ -163,6 +158,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def add_results(self, command_type, command_output):
         try:
+            self.updaterMutex.lock()
+
             if command_type == CommandTypes.Ping:
                 self.pingTextBrowser.moveCursor(QTextCursor.End)
                 self.pingTextBrowser.insertPlainText(command_output)
@@ -182,6 +179,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             QMessageBox.critical(self,
                                  "Critical",
                                  "Problem updating UI with command output : " + str(e))
+        finally:
+            self.updaterMutex.unlock()
 
     def handle_trace_route(self, output):
         self.tracerouteTextBrowser.moveCursor(QTextCursor.End)

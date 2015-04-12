@@ -29,7 +29,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="traceroute">
      <attribute name="title">
@@ -118,28 +118,6 @@
       <string>dns</string>
      </attribute>
      <widget class="QTextBrowser" name="dnsTextBrowser">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>751</width>
-        <height>451</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Courier New</family>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="webserver">
-     <attribute name="title">
-      <string>Web Server </string>
-     </attribute>
-     <widget class="QTextBrowser" name="webserverTextBrowser">
       <property name="geometry">
        <rect>
         <x>0</x>

@@ -19,7 +19,6 @@ class GeolocateQuery(QThread):
         self.process_manager = process_manager
 
     def run(self):
-        # self.emit(QtCore.SIGNAL("registerProcess()"), "geolocate")
         self.process_manager.register_process("geolocate")
 
         try:
@@ -33,9 +32,7 @@ class GeolocateQuery(QThread):
                 self.reply = None
 
             self.emit(QtCore.SIGNAL(str(CommandTypes.Geolocate)), CommandTypes.Geolocate, self.reply)
-
         except Exception as e:
             print("Location could not be determined automatically")
-
         finally:
             self.process_manager.deregister_process("geolocate")

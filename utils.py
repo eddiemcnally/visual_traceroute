@@ -33,16 +33,27 @@ class ProcessManager(QObject):
     def register_process(self, process):
         try:
             self.lock_obj.lock()
+            print("Registering process : " + process)
             self.process_list.append(process)
+        except Exception as e:
+            QtGui.QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem registering process : " + str(process))
         finally:
             self.lock_obj.unlock()
 
     def deregister_process(self, process):
         try:
             self.lock_obj.lock()
+            print("Deregistering process : " + process)
             self.process_list.remove(process)
             if len(self.process_list) == 0:
+                print("All processes complete")
                 self.emit(QtCore.SIGNAL(self.signal_name))
+        except Exception as e:
+            QtGui.QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem deregistering process : " + str(process))
         finally:
             self.lock_obj.unlock()
 
@@ -102,8 +113,8 @@ class AsynchProcess(QtCore.QThread):
                     self.emit(QtCore.SIGNAL(str(self.command)), self.command_type, line)
 
             # cleanup
-            stdout_reader.terminate()
-            process.stdout.close()
+            #stdout_reader.terminate()
+            #process.stdout.close()
 
         except Exception as e:
             QtGui.QMessageBox.critical(self,

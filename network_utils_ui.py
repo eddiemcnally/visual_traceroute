@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'network_utils_ui.ui'
 #
-# Created: Sun Apr 12 13:06:56 2015
-# by: PyQt4 UI code generator 4.11.2
+# Created: Sun Apr 12 21:05:10 2015
+#      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,13 +17,11 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
-
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
-
 
 class Ui_networkutils(object):
     def setupUi(self, networkutils):
@@ -69,8 +67,7 @@ class Ui_networkutils(object):
         self.pingTextBrowser.setFont(font)
         self.pingTextBrowser.setTabChangesFocus(False)
         self.pingTextBrowser.setAcceptRichText(False)
-        self.pingTextBrowser.setTextInteractionFlags(
-            QtCore.Qt.LinksAccessibleByKeyboard | QtCore.Qt.LinksAccessibleByMouse | QtCore.Qt.TextBrowserInteraction | QtCore.Qt.TextSelectableByKeyboard | QtCore.Qt.TextSelectableByMouse)
+        self.pingTextBrowser.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextBrowserInteraction|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.pingTextBrowser.setObjectName(_fromUtf8("pingTextBrowser"))
         self.tabWidget.addTab(self.pingTab, _fromUtf8(""))
         self.dns = QtGui.QWidget()
@@ -87,17 +84,6 @@ class Ui_networkutils(object):
         self.dnsTextBrowser.setFont(font)
         self.dnsTextBrowser.setObjectName(_fromUtf8("dnsTextBrowser"))
         self.tabWidget.addTab(self.dns, _fromUtf8(""))
-        self.webserver = QtGui.QWidget()
-        self.webserver.setObjectName(_fromUtf8("webserver"))
-        self.webserverTextBrowser = QtGui.QTextBrowser(self.webserver)
-        self.webserverTextBrowser.setGeometry(QtCore.QRect(0, 0, 751, 451))
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Courier New"))
-        font.setBold(True)
-        font.setWeight(75)
-        self.webserverTextBrowser.setFont(font)
-        self.webserverTextBrowser.setObjectName(_fromUtf8("webserverTextBrowser"))
-        self.tabWidget.addTab(self.webserver, _fromUtf8(""))
         self.geolocate = QtGui.QWidget()
         self.geolocate.setObjectName(_fromUtf8("geolocate"))
         self.geolocateTextBrowser = QtGui.QTextBrowser(self.geolocate)
@@ -148,22 +134,17 @@ class Ui_networkutils(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(networkutils)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(3)
         self.traceroutetab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(networkutils)
 
     def retranslateUi(self, networkutils):
         networkutils.setWindowTitle(_translate("networkutils", "Network Probe Utility", None))
-        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.textTraceRoute),
-                                      _translate("networkutils", "Text", None))
-        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.visualTraceRoute),
-                                      _translate("networkutils", "Visual", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.traceroute),
-                                  _translate("networkutils", "traceroute", None))
+        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.textTraceRoute), _translate("networkutils", "Text", None))
+        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.visualTraceRoute), _translate("networkutils", "Visual", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.traceroute), _translate("networkutils", "traceroute", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.pingTab), _translate("networkutils", "ping", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.dns), _translate("networkutils", "dns", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.webserver),
-                                  _translate("networkutils", "Web Server ", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.geolocate), _translate("networkutils", "Geolocate", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.nslookup), _translate("networkutils", "nslookup", None))
         self.urlLineEdit.setPlaceholderText(_translate("networkutils", "Enter URL or IP Address", None))
