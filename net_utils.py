@@ -2,15 +2,15 @@ import os
 import sys
 
 from PyQt4 import QtCore
-from PyQt4.QtCore import QUrl, Qt
+from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
-from geolocate import GeolocateQuery, GeolocateFields
-from traceroute import *
-from utils import ProcessManager
 
+from geolocate import GeolocateQuery, GeolocateFields
+from utils import ProcessManager
 from utils import CommandTypes, AsynchProcess
 import network_utils_ui
+
 
 # todo
 # - unit testing
@@ -30,11 +30,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.setupUi(self)
         self.statusbar.show()
 
-        # set up some process management
-        self.process_manager = ProcessManager()
-        self.connect(self, QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
 
-        #set up buttons
+        # set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
         self.closePushButton.clicked.connect(app.exit)
 
@@ -45,7 +42,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         web.load(QUrl("https://www.google.ie"))
         hbx.addWidget(web)
         web.show()
-
 
         self.updaterMutex = QtCore.QMutex()
 
@@ -64,9 +60,12 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             CommandTypes.Dig: "dig",
             CommandTypes.nslookup: "nslookup",
             CommandTypes.Geolocate: "unused",
-            }
+        }
 
-
+        # set up some process management
+        self.process_manager = ProcessManager()
+        self.connect(self.thread(), QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
+        pass
 
     def perform_ping(self, url):
         try:
@@ -130,7 +129,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 self.perform_nslookup(url)
 
                 # traceroute
-                #self.perform_traceroute(url)
+                # self.perform_traceroute(url)
 
                 # geolocate
                 self.perform_geolocate(url)
@@ -165,16 +164,23 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             elif command_type == CommandTypes.Geolocate:
                 self.geolocateTextBrowser.clear()
                 disp = ""
-                disp = disp + "Latitude      : " + str(self.geolocate_handler.get_field(GeolocateFields.Latitude)) + os.linesep
-                disp = disp + "Longitude     : " + str(self.geolocate_handler.get_field(GeolocateFields.Longitude)) + os.linesep
-                disp = disp + "ASName        : " + str(self.geolocate_handler.get_field(GeolocateFields.ASNumberName)) + os.linesep
+                disp = disp + "Latitude      : " + str(
+                    self.geolocate_handler.get_field(GeolocateFields.Latitude)) + os.linesep
+                disp = disp + "Longitude     : " + str(
+                    self.geolocate_handler.get_field(GeolocateFields.Longitude)) + os.linesep
+                disp = disp + "ASName        : " + str(
+                    self.geolocate_handler.get_field(GeolocateFields.ASNumberName)) + os.linesep
                 disp = disp + "ISP           : " + self.geolocate_handler.get_field(GeolocateFields.ISP) + os.linesep
                 disp = disp + "City          : " + self.geolocate_handler.get_field(GeolocateFields.City) + os.linesep
-                disp = disp + "RegionName    : " + self.geolocate_handler.get_field(GeolocateFields.RegionName) + os.linesep
+                disp = disp + "RegionName    : " + self.geolocate_handler.get_field(
+                    GeolocateFields.RegionName) + os.linesep
                 disp = disp + "Region        : " + self.geolocate_handler.get_field(GeolocateFields.Region) + os.linesep
-                disp = disp + "Country       : " + self.geolocate_handler.get_field(GeolocateFields.Country) + os.linesep
-                disp = disp + "Country Code  : " + self.geolocate_handler.get_field(GeolocateFields.CountryCode) + os.linesep
-                disp = disp + "Timezone      : " + self.geolocate_handler.get_field(GeolocateFields.Timezone) + os.linesep
+                disp = disp + "Country       : " + self.geolocate_handler.get_field(
+                    GeolocateFields.Country) + os.linesep
+                disp = disp + "Country Code  : " + self.geolocate_handler.get_field(
+                    GeolocateFields.CountryCode) + os.linesep
+                disp = disp + "Timezone      : " + self.geolocate_handler.get_field(
+                    GeolocateFields.Timezone) + os.linesep
                 self.geolocateTextBrowser.setText(disp)
             elif command_type == CommandTypes.TraceRoute:
                 self.handle_trace_route(command_output)
@@ -186,25 +192,19 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.tracerouteTextBrowser.insertPlainText(output)
 
         # parse line for IP addresses,and save for later
-        #cleaned_up = parse_traceroute_output(output)
+        # cleaned_up = parse_traceroute_output(output)
 
         #route = ""
         #i = 1
         #for hop in cleaned_up:
-            #route = route + str(i) + " : " + hop + os.linesep
-            #i += 1
+        #route = route + str(i) + " : " + hop + os.linesep
+        #i += 1
         #self.tracerouteTextBrowser.setText(route)
-
-
-
 
 
     def get_url(self):
         # todo - validate url input and prompt dialog
         return self.urlLineEdit.text()
-
-
-
 
 
 app = QApplication(sys.argv)
