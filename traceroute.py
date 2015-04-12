@@ -1,7 +1,6 @@
 __author__ = 'eddie'
 
 
-
 def parse_traceroute_output(output):
     lines = output.split("\n")
 
@@ -24,5 +23,5 @@ def parse_traceroute_output(output):
         retval.append(ip)
 
     ## remove first IP address (won't be public)
-    #retval.pop(0)
+    # retval.pop(0)
     return retval

@@ -12,6 +12,7 @@ from utils import CommandTypes, AsynchProcess
 import network_utils_ui
 
 
+
 # todo
 # - unit testing
 # - migrate to Qt5
@@ -64,8 +65,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
         # set up some process management
         self.process_manager = ProcessManager()
-        self.connect(self.thread(), QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
-        pass
+        self.connect(self.process_manager, QtCore.SIGNAL(self.process_manager.signal_name),
+                     self.all_processes_terminated)
 
     def perform_ping(self, url):
         try:
@@ -73,8 +74,10 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             self.ping_handler = AsynchProcess(CommandTypes.Ping, ping_command, self.process_manager)
             self.connect(self.ping_handler, QtCore.SIGNAL(str(ping_command)), self.add_results)
             self.ping_handler.start()
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem performing 'ping' command : " + str(e))
 
     def perform_dns(self, url):
         try:
@@ -82,8 +85,10 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             self.dns_handler = AsynchProcess(CommandTypes.Dig, dig_command, self.process_manager)
             self.connect(self.dns_handler, QtCore.SIGNAL(str(dig_command)), self.add_results)
             self.dns_handler.start()
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem performing dns command : " + str(e))
 
     def perform_nslookup(self, url):
         try:
@@ -91,16 +96,21 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             self.nslookup_handler = AsynchProcess(CommandTypes.nslookup, nslookup_command, self.process_manager)
             self.connect(self.nslookup_handler, QtCore.SIGNAL(str(nslookup_command)), self.add_results)
             self.nslookup_handler.start()
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem performing nslookup command : " + str(e))
 
     def perform_geolocate(self, url):
         try:
-            self.geolocate_handler = GeolocateQuery(url, None)
+            self.geolocate_handler = GeolocateQuery(url, None, self.process_manager)
             self.connect(self.geolocate_handler, QtCore.SIGNAL(str(CommandTypes.Geolocate)), self.add_results)
             self.geolocate_handler.start()
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem doing geolocate : " + str(e))
+
 
     def perform_traceroute(self, url):
         traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
@@ -132,23 +142,22 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 # self.perform_traceroute(url)
 
                 # geolocate
-                self.perform_geolocate(url)
+                #self.perform_geolocate(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
         except Exception as e:
-            print("Problem doing network ops : " + e)
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem performing network lookup : " + str(e))
         finally:
             self.updaterMutex.unlock()
 
 
     def all_processes_terminated(self):
-        print("start - in all_processes_terminated()")
         self.doLookupPushButton.setEnabled(True)
         self.doLookupPushButton.update()
         self.statusbar.clearMessage()
         self.statusbar.showMessage("Complete!")
-        print("end - in all_processes_terminated()")
-
 
     def add_results(self, command_type, command_output):
         try:
@@ -184,8 +193,10 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 self.geolocateTextBrowser.setText(disp)
             elif command_type == CommandTypes.TraceRoute:
                 self.handle_trace_route(command_output)
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem updating UI with command output : " + str(e))
 
     def handle_trace_route(self, output):
         self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
@@ -194,7 +205,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         # parse line for IP addresses,and save for later
         # cleaned_up = parse_traceroute_output(output)
 
-        #route = ""
+        # route = ""
         #i = 1
         #for hop in cleaned_up:
         #route = route + str(i) + " : " + hop + os.linesep

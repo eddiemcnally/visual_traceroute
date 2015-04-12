@@ -2,7 +2,9 @@ from enum import Enum
 import subprocess
 import queue
 import time
+
 from PyQt4 import QtCore
+from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
 
@@ -19,20 +21,18 @@ class CommandTypes(Enum):
 
 class ProcessManager(QObject):
     ''' A class that keeps track of the running processes '''
+
     def __init__(self):
-        print("creating ProcessMgr")
         QObject.__init__(self)
         self.process_list = []
         self.signal_name = "all_processes_terminated"
-        #self.connect(self.thread(), QtCore.SIGNAL("registerProcess()"), self.register_process)
+        # self.connect(self.thread(), QtCore.SIGNAL("registerProcess()"), self.register_process)
         #self.connect(self.thread(), QtCore.SIGNAL("deregisterProcess()"), self.deregister_process)
         self.lock_obj = QtCore.QMutex()
-        print("11111creating ProcessMgr")
 
     def register_process(self, process):
         try:
             self.lock_obj.lock()
-            print("registering process " + str(process))
             self.process_list.append(process)
         finally:
             self.lock_obj.unlock()
@@ -40,13 +40,12 @@ class ProcessManager(QObject):
     def deregister_process(self, process):
         try:
             self.lock_obj.lock()
-            print("deregistering process " + str(process))
             self.process_list.remove(process)
             if len(self.process_list) == 0:
-                print("***all deregistered***")
                 self.emit(QtCore.SIGNAL(self.signal_name))
         finally:
             self.lock_obj.unlock()
+
 
 class AsynchronousFileReader(QtCore.QThread):
     '''
@@ -63,12 +62,10 @@ class AsynchronousFileReader(QtCore.QThread):
 
     def run(self):
         try:
-            '''The body of the thread: read lines and put them on the queue.'''
             for line in iter(self._fd.readline, ''):
                 st_line = line.decode("utf-8")
                 if st_line:
                     self._queue.put(st_line)
-                #time.sleep(.1)
         except:
             pass
 
@@ -85,8 +82,6 @@ class AsynchProcess(QtCore.QThread):
 
     def run(self):
         try:
-            print("async start!!!!")
-            #self.emit(QtCore.SIGNAL("registerProcess()"), str(self.command))
             self.process_manager.register_process(str(self.command))
 
             process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -99,7 +94,6 @@ class AsynchProcess(QtCore.QThread):
             while True:
                 time.sleep(.2)
                 if process.poll() is not None and stdout_queue.empty():
-                    print("Exiting main loop : " + self.command)
                     break
 
                 # Show what we received from standard output.
@@ -108,15 +102,15 @@ class AsynchProcess(QtCore.QThread):
                     self.emit(QtCore.SIGNAL(str(self.command)), self.command_type, line)
 
             # cleanup
-            #stdout_reader.terminate()
-            #process.stdout.close()
-            #print("Cleanup done : " + self.command)
+            stdout_reader.terminate()
+            process.stdout.close()
 
         except Exception as e:
-            print("Exception for " + self.command + ", " + e)
+            QtGui.QMessageBox.critical(self,
+                                       "Critical",
+                                       "Problem performing command....command='" + self.command + "' error = " + str(e))
+
         finally:
-            print("About to de-register : " + self.command)
-            #self.emit(QtCore.SIGNAL("deregisterProcess()"), str(self.command))
             self.process_manager.deregister_process(str(self.command))
 
 

@@ -1,13 +1,16 @@
-from PyQt4 import QtCore
 from enum import Enum
 import socket
+
+from PyQt4 import QtCore
 from PyQt4.QtCore import QThread
 import requests
+
 from utils import CommandTypes
 
 
 class GeolocateQuery(QThread):
     '''Class to take an IP address and/or URL, and retrieve goelocate information'''
+
     def __init__(self, url, ip_addr, process_manager):
         QThread.__init__(self)
         self.url = url
@@ -16,7 +19,7 @@ class GeolocateQuery(QThread):
         self.process_manager = process_manager
 
     def run(self):
-        #self.emit(QtCore.SIGNAL("registerProcess()"), "geolocate")
+        # self.emit(QtCore.SIGNAL("registerProcess()"), "geolocate")
         self.process_manager.register_process("geolocate")
 
         try:
