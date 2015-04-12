@@ -29,7 +29,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="traceroute">
      <attribute name="title">
@@ -92,6 +92,7 @@
       <property name="font">
        <font>
         <family>Courier New</family>
+        <italic>true</italic>
        </font>
       </property>
       <property name="tabChangesFocus">
@@ -126,6 +127,8 @@
       <property name="font">
        <font>
         <family>Courier New</family>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
      </widget>

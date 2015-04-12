@@ -40,33 +40,36 @@ class GeolocateQuery(QThread):
         return self.reply
 
     def get_field(self, geolocateFieldEnum):
-        if self.reply is None:
-            return None
+        try:
+            if self.reply is None:
+                return None
 
-        if geolocateFieldEnum == GeolocateFields.ASNumberName:
-            return self.reply["as"]
-        elif geolocateFieldEnum == GeolocateFields.Country:
-            return self.reply["country"]
-        elif geolocateFieldEnum == GeolocateFields.CountryCode:
-            return self.reply["countryCode"]
-        elif geolocateFieldEnum == GeolocateFields.Region:
-            return self.reply["region"]
-        elif geolocateFieldEnum == GeolocateFields.RegionName:
-            return self.reply["regionName"]
-        elif geolocateFieldEnum == GeolocateFields.City:
-            return self.reply["city"]
-        elif geolocateFieldEnum == GeolocateFields.Latitude:
-            return self.reply["lat"]
-        elif geolocateFieldEnum == GeolocateFields.Longitude:
-            return self.reply["lon"]
-        elif geolocateFieldEnum == GeolocateFields.Timezone:
-            return self.reply["timezone"]
-        elif geolocateFieldEnum == GeolocateFields.ISP:
-            return self.reply["isp"]
-        elif geolocateFieldEnum == GeolocateFields.Org:
-            return self.reply["org"]
-        else:
-            return None
+            if geolocateFieldEnum == GeolocateFields.ASNumberName:
+                return self.reply["as"]
+            elif geolocateFieldEnum == GeolocateFields.Country:
+                return self.reply["country"]
+            elif geolocateFieldEnum == GeolocateFields.CountryCode:
+                return self.reply["countryCode"]
+            elif geolocateFieldEnum == GeolocateFields.Region:
+                return self.reply["region"]
+            elif geolocateFieldEnum == GeolocateFields.RegionName:
+                return self.reply["regionName"]
+            elif geolocateFieldEnum == GeolocateFields.City:
+                return self.reply["city"]
+            elif geolocateFieldEnum == GeolocateFields.Latitude:
+                return self.reply["lat"]
+            elif geolocateFieldEnum == GeolocateFields.Longitude:
+                return self.reply["lon"]
+            elif geolocateFieldEnum == GeolocateFields.Timezone:
+                return self.reply["timezone"]
+            elif geolocateFieldEnum == GeolocateFields.ISP:
+                return self.reply["isp"]
+            elif geolocateFieldEnum == GeolocateFields.Org:
+                return self.reply["org"]
+            else:
+                return None
+        except:
+            pass
 
 
 class GeolocateFields(Enum):

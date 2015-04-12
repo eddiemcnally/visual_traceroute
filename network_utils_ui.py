@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'network_utils_ui.ui'
 #
-# Created: Thu Apr  9 20:35:43 2015
+# Created: Sun Apr 12 12:22:23 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -61,6 +61,7 @@ class Ui_networkutils(object):
         self.pingTextBrowser.setGeometry(QtCore.QRect(0, 0, 751, 451))
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Courier New"))
+        font.setItalic(True)
         self.pingTextBrowser.setFont(font)
         self.pingTextBrowser.setTabChangesFocus(False)
         self.pingTextBrowser.setAcceptRichText(False)
@@ -76,6 +77,8 @@ class Ui_networkutils(object):
         self.dnsTextBrowser.setGeometry(QtCore.QRect(0, 0, 751, 451))
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Courier New"))
+        font.setBold(True)
+        font.setWeight(75)
         self.dnsTextBrowser.setFont(font)
         self.dnsTextBrowser.setObjectName(_fromUtf8("dnsTextBrowser"))
         self.tabWidget.addTab(self.dns, _fromUtf8(""))
@@ -140,7 +143,7 @@ class Ui_networkutils(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(networkutils)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.traceroutetab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(networkutils)
 
