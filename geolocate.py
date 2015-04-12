@@ -16,7 +16,8 @@ class GeolocateQuery(QThread):
         self.process_manager = process_manager
 
     def run(self):
-        self.process_manager.register_process(self)
+        #self.emit(QtCore.SIGNAL("registerProcess()"), "geolocate")
+        self.process_manager.register_process("geolocate")
 
         try:
             if self.ip_addr is None:
@@ -34,7 +35,8 @@ class GeolocateQuery(QThread):
             print("Location could not be determined automatically")
 
         finally:
-            self.process_manager.deregister_process(self)
+            #self.emit(QtCore.SIGNAL("deregisterProcess()"), "geolocate")
+            self.process_manager.deregister_process("geolocate")
 
     def dump_data(self):
         return self.reply

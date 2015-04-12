@@ -16,28 +16,37 @@ class CommandTypes(Enum):
     Whois = 6
     Ping = 7
 
-# todo: replace this with signals, rather than calling func's (not thread safe)
+
 class ProcessManager(QObject):
     ''' A class that keeps track of the running processes '''
     def __init__(self):
+        print("creating ProcessMgr")
         QObject.__init__(self)
         self.process_list = []
         self.signal_name = "all_processes_terminated"
-        self.connect(self, QtCore.SIGNAL("registerProcess()"), self.register_process)
-        self.connect(self, QtCore.SIGNAL("deregisterProcess()"), self.deregister_process)
-
+        #self.connect(self.thread(), QtCore.SIGNAL("registerProcess()"), self.register_process)
+        #self.connect(self.thread(), QtCore.SIGNAL("deregisterProcess()"), self.deregister_process)
+        self.lock_obj = QtCore.QMutex()
+        print("11111creating ProcessMgr")
 
     def register_process(self, process):
-        print("register process " + str(process))
-        self.process_list.append(process)
-
+        try:
+            self.lock_obj.lock()
+            print("registering process " + str(process))
+            self.process_list.append(process)
+        finally:
+            self.lock_obj.unlock()
 
     def deregister_process(self, process):
-        print("deregister process " + str(process))
-        self.process_list.remove(process)
-        if len(self.process_list) == 0:
-             self.emit(QtCore.SIGNAL(self.signal_name))
-
+        try:
+            self.lock_obj.lock()
+            print("deregistering process " + str(process))
+            self.process_list.remove(process)
+            if len(self.process_list) == 0:
+                print("***all deregistered***")
+                self.emit(QtCore.SIGNAL(self.signal_name))
+        finally:
+            self.lock_obj.unlock()
 
 class AsynchronousFileReader(QtCore.QThread):
     '''
@@ -74,16 +83,12 @@ class AsynchProcess(QtCore.QThread):
         self.command_type = command_type
         self.process_manager = process_manager
 
-
     def run(self):
         try:
-            '''
-            Example of how to consume standard output and standard error of
-            a subprocess asynchronously without risk on deadlocking.
-            '''
-            self.emit(QtCore.SIGNAL("registerProcess()"), self)
+            print("async start!!!!")
+            #self.emit(QtCore.SIGNAL("registerProcess()"), str(self.command))
+            self.process_manager.register_process(str(self.command))
 
-            self.process_manager.register_process(self)
             process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             # Launch the asynchronous readers of the process' stdout.
@@ -102,19 +107,16 @@ class AsynchProcess(QtCore.QThread):
                     line = stdout_queue.get()
                     self.emit(QtCore.SIGNAL(str(self.command)), self.command_type, line)
 
-            print("About to de-register : " + self.command)
-            #self.process_manager.deregister_process(self)
-            self.emit(QtCore.SIGNAL("deregisterProcess()"), self)
-
-            print("de-register done : " + self.command)
-
             # cleanup
-            stdout_reader.terminate()
-            process.stdout.close()
-            print("Cleanup done : " + self.command)
+            #stdout_reader.terminate()
+            #process.stdout.close()
+            #print("Cleanup done : " + self.command)
 
         except Exception as e:
             print("Exception for " + self.command + ", " + e)
-
+        finally:
+            print("About to de-register : " + self.command)
+            #self.emit(QtCore.SIGNAL("deregisterProcess()"), str(self.command))
+            self.process_manager.deregister_process(str(self.command))
 
 

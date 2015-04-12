@@ -30,8 +30,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.setupUi(self)
         self.statusbar.show()
 
+        # set up some process management
         self.process_manager = ProcessManager()
-        self.connect(self.process_manager, QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
+        self.connect(self, QtCore.SIGNAL(self.process_manager.signal_name), self.all_processes_terminated)
 
         #set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
@@ -96,7 +97,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def perform_geolocate(self, url):
         try:
-            self.geolocate_handler = GeolocateQuery(url, None, self.process_manager)
+            self.geolocate_handler = GeolocateQuery(url, None)
             self.connect(self.geolocate_handler, QtCore.SIGNAL(str(CommandTypes.Geolocate)), self.add_results)
             self.geolocate_handler.start()
         except:
@@ -104,14 +105,13 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def perform_traceroute(self, url):
         traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
-        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command, self.process_manager)
+        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command)
         self.connect(self.traceroute_handler, QtCore.SIGNAL(str(traceroute_command)), self.add_results)
         self.traceroute_handler.start()
 
     def handle_do_it_button(self):
         try:
             self.updaterMutex.lock()
-
 
             self.statusbar.clearMessage()
             self.statusbar.showMessage("Working...")
