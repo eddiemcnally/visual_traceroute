@@ -115,7 +115,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def perform_traceroute(self, url):
         traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
-        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command)
+        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command, self.process_manager)
         self.connect(self.traceroute_handler, QtCore.SIGNAL(str(traceroute_command)), self.add_results)
         self.traceroute_handler.start()
 
@@ -129,7 +129,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             if url:
 
                 # ping
-                self.perform_ping(url)
+                #self.perform_ping(url)
 
                 # dig
                 self.perform_dns(url)
@@ -138,7 +138,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 self.perform_nslookup(url)
 
                 # traceroute
-                # self.perform_traceroute(url)
+                self.perform_traceroute(url)
 
                 # geolocate
                 self.perform_geolocate(url)
@@ -184,7 +184,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
     def handle_trace_route(self, output):
         self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
-        self.tracerouteTextBrowser.insertPlainText(output)
+        self.tracerouteTextBrowser.insertPlainText(str(output))
 
         # parse line for IP addresses,and save for later
         # cleaned_up = parse_traceroute_output(output)
