@@ -1,11 +1,9 @@
-import os
 import sys
 
 from PyQt4 import QtCore
 from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
-
 import simplejson as json
 
 from geolocate import GeolocateQuery
@@ -129,7 +127,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             if url:
 
                 # ping
-                #self.perform_ping(url)
+                # self.perform_ping(url)
 
                 # dig
                 self.perform_dns(url)
@@ -170,7 +168,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 self.nslookupTextBrowser.moveCursor(QTextCursor.End)
                 self.nslookupTextBrowser.insertPlainText(command_output)
             elif command_type == CommandTypes.Geolocate:
-                text = json.dumps(command_output, sort_keys = True, indent = 4)
+                text = json.dumps(command_output, sort_keys=True, indent=4)
                 self.geolocateTextBrowser.moveCursor(QTextCursor.End)
                 self.geolocateTextBrowser.insertPlainText(str(text))
             elif command_type == CommandTypes.TraceRoute:
@@ -190,7 +188,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         # cleaned_up = parse_traceroute_output(output)
 
         # route = ""
-        #i = 1
+        # i = 1
         #for hop in cleaned_up:
         #route = route + str(i) + " : " + hop + os.linesep
         #i += 1

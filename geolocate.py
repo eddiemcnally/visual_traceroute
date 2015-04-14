@@ -1,4 +1,3 @@
-from enum import Enum
 import socket
 
 from PyQt4 import QtCore

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'network_utils_ui.ui'
 #
 # Created: Sun Apr 12 21:05:10 2015
-#      by: PyQt4 UI code generator 4.11.2
+# by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,11 +17,13 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_networkutils(object):
     def setupUi(self, networkutils):
@@ -67,7 +69,8 @@ class Ui_networkutils(object):
         self.pingTextBrowser.setFont(font)
         self.pingTextBrowser.setTabChangesFocus(False)
         self.pingTextBrowser.setAcceptRichText(False)
-        self.pingTextBrowser.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextBrowserInteraction|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.pingTextBrowser.setTextInteractionFlags(
+            QtCore.Qt.LinksAccessibleByKeyboard | QtCore.Qt.LinksAccessibleByMouse | QtCore.Qt.TextBrowserInteraction | QtCore.Qt.TextSelectableByKeyboard | QtCore.Qt.TextSelectableByMouse)
         self.pingTextBrowser.setObjectName(_fromUtf8("pingTextBrowser"))
         self.tabWidget.addTab(self.pingTab, _fromUtf8(""))
         self.dns = QtGui.QWidget()
@@ -140,9 +143,12 @@ class Ui_networkutils(object):
 
     def retranslateUi(self, networkutils):
         networkutils.setWindowTitle(_translate("networkutils", "Network Probe Utility", None))
-        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.textTraceRoute), _translate("networkutils", "Text", None))
-        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.visualTraceRoute), _translate("networkutils", "Visual", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.traceroute), _translate("networkutils", "traceroute", None))
+        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.textTraceRoute),
+                                      _translate("networkutils", "Text", None))
+        self.traceroutetab.setTabText(self.traceroutetab.indexOf(self.visualTraceRoute),
+                                      _translate("networkutils", "Visual", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.traceroute),
+                                  _translate("networkutils", "traceroute", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.pingTab), _translate("networkutils", "ping", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.dns), _translate("networkutils", "dns", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.geolocate), _translate("networkutils", "Geolocate", None))
