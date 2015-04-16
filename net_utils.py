@@ -12,7 +12,6 @@ from utils import CommandTypes, AsynchProcess
 import network_utils_ui
 
 
-
 # todo
 # - unit testing
 # - migrate to Qt5
@@ -25,12 +24,53 @@ import network_utils_ui
 # - fix up traceroute output parsing
 
 
+
+html='''
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple markers</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+    <script>
+function initialize() {
+  var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
+  var mapOptions = {
+    zoom: 4,
+    center: myLatlng
+  }
+  var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+  var marker = new google.maps.Marker({
+      position: myLatlng,
+      map: map,
+      title: 'Hello World!'
+  });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+  </body>
+</html>
+'''
+
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
         super(NetUtil, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
-
 
         # set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
@@ -40,7 +80,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         hbx = QHBoxLayout()
         self.visualTraceRoute.setLayout(hbx)
         web = QWebView()
-        web.load(QUrl("https://www.google.ie"))
+        web.setHtml(html)
         hbx.addWidget(web)
         web.show()
 
@@ -125,9 +165,8 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
             url = self.get_url()
             if url:
-
                 # ping
-                # self.perform_ping(url)
+                self.perform_ping(url)
 
                 # dig
                 self.perform_dns(url)
@@ -189,7 +228,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
         # route = ""
         # i = 1
-        #for hop in cleaned_up:
+        # for hop in cleaned_up:
         #route = route + str(i) + " : " + hop + os.linesep
         #i += 1
         #self.tracerouteTextBrowser.setText(route)
