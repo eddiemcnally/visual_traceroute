@@ -80,7 +80,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         hbx = QHBoxLayout()
         self.visualTraceRoute.setLayout(hbx)
         web = QWebView()
-        web.setHtml(html)
+        # web.setHtml(html)
         hbx.addWidget(web)
         web.show()
 
@@ -166,19 +166,19 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             url = self.get_url()
             if url:
                 # ping
-                self.perform_ping(url)
+                #self.perform_ping(url)
 
                 # dig
-                self.perform_dns(url)
+                #self.perform_dns(url)
 
                 # nslookup
-                self.perform_nslookup(url)
+                #self.perform_nslookup(url)
 
                 # traceroute
                 self.perform_traceroute(url)
 
                 # geolocate
-                self.perform_geolocate(url)
+                #self.perform_geolocate(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
         except Exception as e:
@@ -222,6 +222,20 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def handle_trace_route(self, output):
         self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
         self.tracerouteTextBrowser.insertPlainText(str(output))
+
+        #
+        # # print out IP address
+        # if (output.index("(")):
+        #     try:
+        #         start_ip = output.index("(") - 1
+        #         end_ip = output.index(")")
+        #
+        #         ip_addr = output[start_ip:end_ip]
+        #         print("IP = " + ip_addr)
+        #     except Exception as e:
+        #         QMessageBox.critical(self,
+        #                          "Critical",
+        #                          "Problem parsing IP address : " + str(e))
 
         # parse line for IP addresses,and save for later
         # cleaned_up = parse_traceroute_output(output)
