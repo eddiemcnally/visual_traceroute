@@ -1,7 +1,6 @@
 import sys
 
 from PyQt4 import QtCore
-from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 import simplejson as json
@@ -25,7 +24,7 @@ import network_utils_ui
 
 
 
-html='''
+html = '''
 <!DOCTYPE html>
 <html>
   <head>
@@ -41,23 +40,44 @@ html='''
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
     <script>
-function initialize() {
-  var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
-  var mapOptions = {
-    zoom: 4,
-    center: myLatlng
-  }
-  var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-  var marker = new google.maps.Marker({
-      position: myLatlng,
-      map: map,
-      title: 'Hello World!'
+  var flightPlanCoordinates = [
+    new google.maps.LatLng(37.772323, -122.214897),
+    new google.maps.LatLng(21.291982, -157.821856),
+    new google.maps.LatLng(-18.142599, 178.431),
+    new google.maps.LatLng(-27.46758, 153.027892)
+  ];
+
+function initialize() {
+  var mapOptions = {
+    zoom: 3,
+    center: new google.maps.LatLng(0, -180),
+    mapTypeId: google.maps.MapTypeId.TERRAIN
+  };
+
+  var map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  var flightPath = new google.maps.Polyline({
+    path: flightPlanCoordinates,
+    geodesic: true,
+    strokeColor: '#FF0000',
+    strokeOpacity: 1.0,
+    strokeWeight: 2
   });
+
+  flightPath.setMap(map);
+
+  for (i = 0; i < flightPlanCoordinates.length; i++) {
+      var marker = new google.maps.Marker({
+          position: flightPlanCoordinates[i],
+          map: map,
+          title: 'Hello World!'
+      });
+  }
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
-
     </script>
   </head>
   <body>
@@ -65,6 +85,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
   </body>
 </html>
 '''
+
+
+
 
 class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
     def __init__(self):
@@ -78,9 +101,9 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
         # set up for visual traceroute
         hbx = QHBoxLayout()
-        self.visualTraceRoute.setLayout(hbx)
+        self.visualTraceRouteWidget.setLayout(hbx)
         web = QWebView()
-        # web.setHtml(html)
+        web.setHtml(html)
         hbx.addWidget(web)
         web.show()
 
@@ -100,7 +123,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             CommandTypes.Dig: "dig",
             CommandTypes.nslookup: "nslookup",
             CommandTypes.Geolocate: "unused",
-        }
+            }
 
         # set up some process management
         self.process_manager = ProcessManager()
@@ -150,13 +173,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                                  "Critical",
                                  "Problem doing geolocate : " + str(e))
 
-
-    def perform_traceroute(self, url):
-        traceroute_command = self.commands_to_run[CommandTypes.TraceRoute] + " " + url
-        self.traceroute_handler = AsynchProcess(CommandTypes.TraceRoute, traceroute_command, self.process_manager)
-        self.connect(self.traceroute_handler, QtCore.SIGNAL(str(traceroute_command)), self.add_results)
-        self.traceroute_handler.start()
-
     def handle_do_it_button(self):
         try:
             self.statusbar.clearMessage()
@@ -166,7 +182,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             url = self.get_url()
             if url:
                 # ping
-                #self.perform_ping(url)
+                self.perform_ping(url)
 
                 # dig
                 #self.perform_dns(url)
@@ -175,16 +191,17 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 #self.perform_nslookup(url)
 
                 # traceroute
-                self.perform_traceroute(url)
+                #self.perform_traceroute(url)
 
                 # geolocate
                 #self.perform_geolocate(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
+
         except Exception as e:
             QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem performing network lookup : " + str(e))
+                         "Critical",
+                         "Problem performing network lookup : " + str(e))
 
 
     def all_processes_terminated(self):
@@ -192,6 +209,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.doLookupPushButton.update()
         self.statusbar.clearMessage()
         self.statusbar.showMessage("Complete!")
+
 
     def add_results(self, command_type, command_output):
         try:
@@ -210,8 +228,7 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
                 text = json.dumps(command_output, sort_keys=True, indent=4)
                 self.geolocateTextBrowser.moveCursor(QTextCursor.End)
                 self.geolocateTextBrowser.insertPlainText(str(text))
-            elif command_type == CommandTypes.TraceRoute:
-                self.handle_trace_route(command_output)
+
         except Exception as e:
             QMessageBox.critical(self,
                                  "Critical",
@@ -219,33 +236,36 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         finally:
             self.updaterMutex.unlock()
 
-    def handle_trace_route(self, output):
-        self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
-        self.tracerouteTextBrowser.insertPlainText(str(output))
 
-        #
-        # # print out IP address
-        # if (output.index("(")):
-        #     try:
-        #         start_ip = output.index("(") - 1
-        #         end_ip = output.index(")")
-        #
-        #         ip_addr = output[start_ip:end_ip]
-        #         print("IP = " + ip_addr)
-        #     except Exception as e:
-        #         QMessageBox.critical(self,
-        #                          "Critical",
-        #                          "Problem parsing IP address : " + str(e))
+#def handle_trace_route(self, output):
 
-        # parse line for IP addresses,and save for later
-        # cleaned_up = parse_traceroute_output(output)
 
-        # route = ""
-        # i = 1
-        # for hop in cleaned_up:
-        #route = route + str(i) + " : " + hop + os.linesep
-        #i += 1
-        #self.tracerouteTextBrowser.setText(route)
+# self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
+#self.tracerouteTextBrowser.insertPlainText(str(output))
+
+#
+# # print out IP address
+# if (output.index("(")):
+#     try:
+#         start_ip = output.index("(") - 1
+#         end_ip = output.index(")")
+#
+#         ip_addr = output[start_ip:end_ip]
+#         print("IP = " + ip_addr)
+#     except Exception as e:
+#         QMessageBox.critical(self,
+#                          "Critical",
+#                          "Problem parsing IP address : " + str(e))
+
+# parse line for IP addresses,and save for later
+# cleaned_up = parse_traceroute_output(output)
+
+# route = ""
+# i = 1
+# for hop in cleaned_up:
+#route = route + str(i) + " : " + hop + os.linesep
+#i += 1
+#self.tracerouteTextBrowser.setText(route)
 
 
     def get_url(self):
