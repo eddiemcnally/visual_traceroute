@@ -8,7 +8,7 @@ import simplejson as json
 from geolocate import GeolocateQuery
 from utils import ProcessManager
 from utils import CommandTypes, AsynchProcess
-import network_utils_ui
+import visual_traceroute_ui
 
 
 # todo
@@ -89,9 +89,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 
 
-class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
+class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_main_window):
     def __init__(self):
-        super(NetUtil, self).__init__()
+        super(VisualTraceRoute, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
 
@@ -99,23 +99,11 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
         self.closePushButton.clicked.connect(app.exit)
 
-        # set up for visual traceroute
-        hbx = QHBoxLayout()
-        self.visualTraceRouteWidget.setLayout(hbx)
-        web = QWebView()
-        web.setHtml(html)
-        hbx.addWidget(web)
-        web.show()
-
         self.updaterMutex = QtCore.QMutex()
 
         # set up worker threads for running commands
-        self.ping_handler = None
-        self.dns_handler = None
-        self.nslookup_handler = None
         self.traceroute_handler = None
         self.geolocate_handler = None
-        self.traceroute_handler = None
 
         self.commands_to_run = {
             CommandTypes.Ping: "ping -c 10",
@@ -130,38 +118,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.connect(self.process_manager, QtCore.SIGNAL(self.process_manager.signal_name),
                      self.all_processes_terminated)
 
-    def perform_ping(self, url):
-        try:
-            ping_command = self.commands_to_run[CommandTypes.Ping] + " " + url
-            self.ping_handler = AsynchProcess(CommandTypes.Ping, ping_command, self.process_manager)
-            self.connect(self.ping_handler, QtCore.SIGNAL(str(ping_command)), self.add_results)
-            self.ping_handler.start()
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem performing 'ping' command : " + str(e))
-
-    def perform_dns(self, url):
-        try:
-            dig_command = self.commands_to_run[CommandTypes.Dig] + " " + url
-            self.dns_handler = AsynchProcess(CommandTypes.Dig, dig_command, self.process_manager)
-            self.connect(self.dns_handler, QtCore.SIGNAL(str(dig_command)), self.add_results)
-            self.dns_handler.start()
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem performing dns command : " + str(e))
-
-    def perform_nslookup(self, url):
-        try:
-            nslookup_command = self.commands_to_run[CommandTypes.nslookup] + " " + url
-            self.nslookup_handler = AsynchProcess(CommandTypes.nslookup, nslookup_command, self.process_manager)
-            self.connect(self.nslookup_handler, QtCore.SIGNAL(str(nslookup_command)), self.add_results)
-            self.nslookup_handler.start()
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem performing nslookup command : " + str(e))
 
     def perform_geolocate(self, url):
         try:
@@ -181,20 +137,12 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
             url = self.get_url()
             if url:
-                # ping
-                self.perform_ping(url)
-
-                # dig
-                #self.perform_dns(url)
-
-                # nslookup
-                #self.perform_nslookup(url)
-
                 # traceroute
                 #self.perform_traceroute(url)
 
                 # geolocate
                 #self.perform_geolocate(url)
+                pass
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
 
@@ -209,6 +157,21 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
         self.doLookupPushButton.update()
         self.statusbar.clearMessage()
         self.statusbar.showMessage("Complete!")
+
+        print(self.route_list)
+        self.draw_visual_trace_route()
+
+
+
+    def draw_visual_trace_route(self):
+        # set up for visual traceroute
+        hbx = QHBoxLayout()
+        self.visualTraceRouteWidget.setLayout(hbx)
+        web = QWebView()
+        web.setHtml(html)
+        hbx.addWidget(web)
+        web.show()
+
 
 
     def add_results(self, command_type, command_output):
@@ -237,35 +200,24 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
             self.updaterMutex.unlock()
 
 
-#def handle_trace_route(self, output):
 
 
-# self.tracerouteTextBrowser.moveCursor(QTextCursor.End)
-#self.tracerouteTextBrowser.insertPlainText(str(output))
+    def handle_trace_route(self, output):
+        print(output)
 
-#
-# # print out IP address
-# if (output.index("(")):
-#     try:
-#         start_ip = output.index("(") - 1
-#         end_ip = output.index(")")
-#
-#         ip_addr = output[start_ip:end_ip]
-#         print("IP = " + ip_addr)
-#     except Exception as e:
-#         QMessageBox.critical(self,
-#                          "Critical",
-#                          "Problem parsing IP address : " + str(e))
+        line = str(output).strip()
 
-# parse line for IP addresses,and save for later
-# cleaned_up = parse_traceroute_output(output)
+        if line[:1] in '0123456789':
+            # this line is a route
+            if "*" not in line:
+                # line has a valid route IP
+                if ')' in line and '(' in line:
+                    # find IP address and save it
+                    start_idx = line.index('(')
+                    end_idx = line.index(')')
+                    ip_addr = line[start_idx + 1:end_idx]
+                    self.route_list.append(ip_addr)
 
-# route = ""
-# i = 1
-# for hop in cleaned_up:
-#route = route + str(i) + " : " + hop + os.linesep
-#i += 1
-#self.tracerouteTextBrowser.setText(route)
 
 
     def get_url(self):
@@ -274,6 +226,6 @@ class NetUtil(QMainWindow, network_utils_ui.Ui_networkutils):
 
 
 app = QApplication(sys.argv)
-nu = NetUtil()
+nu = VisualTraceRoute()
 nu.show()
 app.exec_()
