@@ -4,10 +4,9 @@ from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 import simplejson as json
+from traceroute import TraceRoute
 
 from geolocate import GeolocateQuery
-from utils import ProcessManager
-from utils import CommandTypes, AsynchProcess
 import visual_traceroute_ui
 
 
@@ -103,31 +102,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
         # set up worker threads for running commands
         self.traceroute_handler = None
-        self.geolocate_handler = None
 
-        self.commands_to_run = {
-            CommandTypes.Ping: "ping -c 10",
-            CommandTypes.TraceRoute: "traceroute",
-            CommandTypes.Dig: "dig",
-            CommandTypes.nslookup: "nslookup",
-            CommandTypes.Geolocate: "unused",
-            }
-
-        # set up some process management
-        self.process_manager = ProcessManager()
-        self.connect(self.process_manager, QtCore.SIGNAL(self.process_manager.signal_name),
-                     self.all_processes_terminated)
-
-
-    def perform_geolocate(self, url):
-        try:
-            self.geolocate_handler = GeolocateQuery(url, None, self.process_manager)
-            self.connect(self.geolocate_handler, QtCore.SIGNAL(str(CommandTypes.Geolocate)), self.add_results)
-            self.geolocate_handler.start()
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem doing geolocate : " + str(e))
 
     def handle_do_it_button(self):
         try:
@@ -138,11 +113,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             url = self.get_url()
             if url:
                 # traceroute
-                #self.perform_traceroute(url)
-
-                # geolocate
-                #self.perform_geolocate(url)
-                pass
+                self.perform_traceroute(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
 
@@ -200,6 +171,15 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             self.updaterMutex.unlock()
 
 
+    def perform_traceroute(self, url):
+        try:
+            self.traceroute_handler = TraceRoute(url)
+            self.connect(self.traceroute_handler, QtCore.SIGNAL("TraceRoute"), self.add_results)
+            self.traceroute_handler.start()
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem performing TraceRoute command : " + str(e))
 
 
     def handle_trace_route(self, output):
