@@ -98,7 +98,8 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
         self.closePushButton.clicked.connect(app.exit)
 
-        self.updaterMutex = QtCore.QMutex()
+
+
 
         # set up worker threads for running commands
         self.traceroute_handler = None
@@ -116,6 +117,8 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                 self.perform_traceroute(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
+                self.doLookupPushButton.setEnabled(True)
+
 
         except Exception as e:
             QMessageBox.critical(self,
@@ -123,13 +126,13 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                          "Problem performing network lookup : " + str(e))
 
 
-    def all_processes_terminated(self):
+    def traceroute_complete(self, route_list):
         self.doLookupPushButton.setEnabled(True)
         self.doLookupPushButton.update()
         self.statusbar.clearMessage()
         self.statusbar.showMessage("Complete!")
 
-        print(self.route_list)
+        print(route_list)
         self.draw_visual_trace_route()
 
 
@@ -143,61 +146,61 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         hbx.addWidget(web)
         web.show()
 
-
-
-    def add_results(self, command_type, command_output):
-        try:
-            self.updaterMutex.lock()
-
-            if command_type == CommandTypes.Ping:
-                self.pingTextBrowser.moveCursor(QTextCursor.End)
-                self.pingTextBrowser.insertPlainText(command_output)
-            elif command_type == CommandTypes.Dig:
-                self.dnsTextBrowser.moveCursor(QTextCursor.End)
-                self.dnsTextBrowser.insertPlainText(command_output)
-            elif command_type == CommandTypes.nslookup:
-                self.nslookupTextBrowser.moveCursor(QTextCursor.End)
-                self.nslookupTextBrowser.insertPlainText(command_output)
-            elif command_type == CommandTypes.Geolocate:
-                text = json.dumps(command_output, sort_keys=True, indent=4)
-                self.geolocateTextBrowser.moveCursor(QTextCursor.End)
-                self.geolocateTextBrowser.insertPlainText(str(text))
-
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem updating UI with command output : " + str(e))
-        finally:
-            self.updaterMutex.unlock()
+    #
+    #
+    # def add_results(self, command_type, command_output):
+    #     try:
+    #         self.updaterMutex.lock()
+    #
+    #         if command_type == CommandTypes.Ping:
+    #             self.pingTextBrowser.moveCursor(QTextCursor.End)
+    #             self.pingTextBrowser.insertPlainText(command_output)
+    #         elif command_type == CommandTypes.Dig:
+    #             self.dnsTextBrowser.moveCursor(QTextCursor.End)
+    #             self.dnsTextBrowser.insertPlainText(command_output)
+    #         elif command_type == CommandTypes.nslookup:
+    #             self.nslookupTextBrowser.moveCursor(QTextCursor.End)
+    #             self.nslookupTextBrowser.insertPlainText(command_output)
+    #         elif command_type == CommandTypes.Geolocate:
+    #             text = json.dumps(command_output, sort_keys=True, indent=4)
+    #             self.geolocateTextBrowser.moveCursor(QTextCursor.End)
+    #             self.geolocateTextBrowser.insertPlainText(str(text))
+    #
+    #     except Exception as e:
+    #         QMessageBox.critical(self,
+    #                              "Critical",
+    #                              "Problem updating UI with command output : " + str(e))
+    #     finally:
+    #         self.updaterMutex.unlock()
 
 
     def perform_traceroute(self, url):
         try:
             self.traceroute_handler = TraceRoute(url)
-            self.connect(self.traceroute_handler, QtCore.SIGNAL("TraceRoute"), self.add_results)
+            self.connect(self.traceroute_handler, QtCore.SIGNAL("process_terminated"), self.traceroute_complete)
             self.traceroute_handler.start()
         except Exception as e:
             QMessageBox.critical(self,
                                  "Critical",
                                  "Problem performing TraceRoute command : " + str(e))
 
-
-    def handle_trace_route(self, output):
-        print(output)
-
-        line = str(output).strip()
-
-        if line[:1] in '0123456789':
-            # this line is a route
-            if "*" not in line:
-                # line has a valid route IP
-                if ')' in line and '(' in line:
-                    # find IP address and save it
-                    start_idx = line.index('(')
-                    end_idx = line.index(')')
-                    ip_addr = line[start_idx + 1:end_idx]
-                    self.route_list.append(ip_addr)
-
+    #
+    # def handle_trace_route(self, output):
+    #     print(output)
+    #
+    #     line = str(output).strip()
+    #
+    #     if line[:1] in '0123456789':
+    #         # this line is a route
+    #         if "*" not in line:
+    #             # line has a valid route IP
+    #             if ')' in line and '(' in line:
+    #                 # find IP address and save it
+    #                 start_idx = line.index('(')
+    #                 end_idx = line.index(')')
+    #                 ip_addr = line[start_idx + 1:end_idx]
+    #                 self.route_list.append(ip_addr)
+    #
 
 
     def get_url(self):

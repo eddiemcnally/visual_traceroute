@@ -75,7 +75,7 @@ class TraceRoute(QtCore.QThread):
                                 geo_info = geolocate.do_lookup()
                                 self.retval.append()
 
-                    self.emit(QtCore.SIGNAL("TraceRoute"), self.retval)
+            self.emit(QtCore.SIGNAL("process_terminated"),self.retval)
 
         except Exception as e:
             QtGui.QMessageBox.critical(self,
