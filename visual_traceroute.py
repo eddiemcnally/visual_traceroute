@@ -1,5 +1,7 @@
 import sys
 
+import pickle
+
 from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
@@ -89,8 +91,14 @@ html = '''
 <html><body>
   <center>
   <script language="JavaScript">
-    var a = route_list.route();
-    document.write('<p>route_list ' + a[1] + '</p>')
+    var a = route_list.size();
+    document.write('<p>size = ' + a + '</p>')
+    for (i = 0; i < a; i++) {
+        document.write('<p>in for loop...i=' + i + '</p>')
+        var l = route_list.get_longitude(i);
+        document.write('<p>longitude = ' + l + '</p>')
+    }
+
   </script>
  </center>
 </body></html>
@@ -117,15 +125,28 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
     def handle_do_it_button(self):
         try:
-            self.draw_visual_trace_route([])
 
+            # ---------------------------test code
+            #
+            #
+            with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'rb') as f:
+                route_list = pickle.load(f)
+
+            self.draw_visual_trace_route(route_list)
+
+
+            #-----------------------------------
+
+
+
+            #
             # self.statusbar.clearMessage()
             # self.statusbar.showMessage("Working...")
             # self.doLookupPushButton.setEnabled(False)
             #
             # url = self.get_url()
             #
-            # url="www.rte.ie"
+            # url="www.cnn.com"
             # if url:
             #     # traceroute
             #     self.perform_traceroute(url)
@@ -152,13 +173,23 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
 
     def traceroute_complete(self, route_list):
-        self.doLookupPushButton.setEnabled(True)
-        self.doLookupPushButton.update()
-        self.statusbar.clearMessage()
-        self.statusbar.showMessage("Complete!")
 
-        print(route_list)
-        self.draw_visual_trace_route(route_list)
+        try:
+            # with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'wb') as f:
+            #      pickle.dump(route_list, f)
+
+            self.doLookupPushButton.setEnabled(True)
+            self.doLookupPushButton.update()
+            self.statusbar.clearMessage()
+            self.statusbar.showMessage("Complete!")
+
+            print(route_list)
+            self.draw_visual_trace_route(route_list)
+
+        except Exception as e:
+                QMessageBox.critical(self,
+                         "Critical",
+                         "Problem updating UI with traceroute text output : " + str(e))
 
 
 
@@ -196,24 +227,30 @@ class RouteWrapper(QtCore.QObject):
     def __init__(self, route_list):
         QtCore.QObject.__init__(self)
         self.routes = route_list
-        self.routes.append("qwe")
-        self.routes.append("aaa")
-        self.routes.append("ddd")
-        self.routes.append("rrr")
-
 
         print("in RouteWrapper init....routes = " + str(self.routes))
 
     @QtCore.pyqtSlot(result="int")
-    def constant_one(self):
-        return 1;
-
-    @QtCore.pyqtSlot(result=QtCore.QVariant)
-    def route(self):
-        return self.routes
-
     def size(self):
-        return len(self.route_list)
+        return len(self.routes)
+
+    @QtCore.pyqtSlot(result=str)
+    def get_ip(self, offset):
+        row = self.routes[offset]
+        return str(row["query"])
+
+    @QtCore.pyqtSlot(int, result=str)
+    def get_longitude(self, offset):
+
+        print("*******")
+        row = self.routes[offset]
+        return str(row["lon"])
+
+    @QtCore.pyqtSlot(int, result=str)
+    def get_latitude(self, offset):
+        row = self.routes[offset]
+        return str(row["lat"])
+
 
     @QtCore.pyqtSlot(result=str)
     def msg(self):

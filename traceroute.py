@@ -75,7 +75,8 @@ class TraceRoute(QtCore.QThread):
                                 # geolocate the ip address
                                 geolocate = GeolocateQuery(ip_addr)
                                 geo_info = geolocate.do_lookup()
-                                self.retval.append(geo_info)
+                                if geo_info is not None:
+                                    self.retval.append(geo_info)
 
         except Exception as e:
             QtGui.QMessageBox.critical(self,
