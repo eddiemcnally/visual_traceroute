@@ -6,7 +6,6 @@ class GeolocateQuery():
     '''Class to take an IP address and/or URL, and retrieve goelocate information'''
 
     def __init__(self, ip_addr):
-        QThread.__init__(self)
         self.ip_addr = ip_addr
 
     def do_lookup(self):

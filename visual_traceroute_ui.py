@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'visual_traceroute_ui.ui'
 #
-# Created: Wed Apr 22 19:53:25 2015
+# Created: Sat Apr 25 10:51:08 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,6 +41,21 @@ class Ui_visual_traceroute_main_window(object):
         self.visualTraceRouteWidget = QtGui.QWidget(self.centralwidget)
         self.visualTraceRouteWidget.setGeometry(QtCore.QRect(10, 70, 761, 461))
         self.visualTraceRouteWidget.setObjectName(_fromUtf8("visualTraceRouteWidget"))
+        self.tabWidget = QtGui.QTabWidget(self.visualTraceRouteWidget)
+        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 761, 461))
+        self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
+        self.Text = QtGui.QWidget()
+        self.Text.setObjectName(_fromUtf8("Text"))
+        self.textOutput = QtGui.QTextBrowser(self.Text)
+        self.textOutput.setGeometry(QtCore.QRect(-5, 1, 761, 421))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Courier 10 Pitch"))
+        self.textOutput.setFont(font)
+        self.textOutput.setObjectName(_fromUtf8("textOutput"))
+        self.tabWidget.addTab(self.Text, _fromUtf8(""))
+        self.map = QtGui.QWidget()
+        self.map.setObjectName(_fromUtf8("map"))
+        self.tabWidget.addTab(self.map, _fromUtf8(""))
         visual_traceroute_main_window.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(visual_traceroute_main_window)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 780, 27))
@@ -60,6 +75,7 @@ class Ui_visual_traceroute_main_window(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(visual_traceroute_main_window)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(visual_traceroute_main_window)
 
     def retranslateUi(self, visual_traceroute_main_window):
@@ -67,6 +83,8 @@ class Ui_visual_traceroute_main_window(object):
         self.urlLineEdit.setPlaceholderText(_translate("visual_traceroute_main_window", "Enter URL or IP Address", None))
         self.doLookupPushButton.setText(_translate("visual_traceroute_main_window", "Do it", None))
         self.closePushButton.setText(_translate("visual_traceroute_main_window", "Close", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Text), _translate("visual_traceroute_main_window", "Text", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.map), _translate("visual_traceroute_main_window", "Map", None))
         self.menuFile.setTitle(_translate("visual_traceroute_main_window", "File", None))
         self.menuHelp.setTitle(_translate("visual_traceroute_main_window", "Help", None))
         self.actionAbout.setText(_translate("visual_traceroute_main_window", "About", None))

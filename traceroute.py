@@ -58,6 +58,8 @@ class TraceRoute(QtCore.QThread):
                 while not stdout_queue.empty():
                     line = stdout_queue.get()
 
+                    self.emit(QtCore.SIGNAL("traceroute_line"),line)
+
                     line = line.strip()
 
                     if line[:1] in '0123456789':
@@ -73,9 +75,7 @@ class TraceRoute(QtCore.QThread):
                                 # geolocate the ip address
                                 geolocate = GeolocateQuery(ip_addr)
                                 geo_info = geolocate.do_lookup()
-                                self.retval.append()
-
-            self.emit(QtCore.SIGNAL("process_terminated"),self.retval)
+                                self.retval.append(geo_info)
 
         except Exception as e:
             QtGui.QMessageBox.critical(self,
@@ -83,6 +83,6 @@ class TraceRoute(QtCore.QThread):
                                        "Problem performing TraceRoute: Error = " + str(e))
 
         finally:
-            self.emit(QtCore.SIGNAL("process_terminated"),self.retval)
+            self.emit(QtCore.SIGNAL("traceroute_complete"),self.retval)
 
 

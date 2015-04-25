@@ -1,19 +1,48 @@
-__author__ = 'eddie'
-# taken from http://jvns.ca/blog/2013/10/31/day-20-scapy-and-traceroute/
+import sys
+from PyQt4 import QtCore, QtGui, QtWebKit
 
-from scapy.all import *
-hostname = "google.com"
-for i in range(1, 28):
-    pkt = IP(dst=hostname, ttl=i) / UDP(dport=33434)
-    # Send the packet and get a reply
-    reply = sr1(pkt, verbose=0)
-    if reply is None:
-        # No reply =(
-        break
-    elif reply.type == 3:
-        # We've reached our destination
-        print ("Done! " + reply.src)
-        break
-    else:
-        # We're in the middle somewhere
-        print (str(i) + " hops away: " + str(i) + " " + reply.src)
+"""Html snippet."""
+html = """
+<html><body>
+  <center>
+  <script language="JavaScript">
+    document.write('<p>Python ' + pyObj.pyVersion + '</p>')
+  </script>
+  <button onClick="pyObj.showMessage('Hello from WebKit')">Press me</button>
+  </center>
+</body></html>
+"""
+
+class StupidClass(QtCore.QObject):
+    """Simple class with one slot and one read-only property."""
+
+    @QtCore.pyqtSlot(str)
+    def showMessage(self, msg):
+        """Open a message box and display the specified message."""
+        QtGui.QMessageBox.information(None, "Info", msg)
+
+    def _pyVersion(self):
+        """Return the Python version."""
+        return sys.version
+
+    """Python interpreter version property."""
+    pyVersion = QtCore.pyqtProperty(str, fget=_pyVersion)
+
+def main():
+    app = QtGui.QApplication(sys.argv)
+
+    myObj = StupidClass()
+
+    webView = QtWebKit.QWebView()
+    # Make myObj exposed as JavaScript object named 'pyObj'
+    webView.page().mainFrame().addToJavaScriptWindowObject("pyObj", myObj)
+    webView.setHtml(html)
+
+    window = QtGui.QMainWindow()
+    window.setCentralWidget(webView)
+    window.show()
+
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
