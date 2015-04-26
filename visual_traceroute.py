@@ -39,22 +39,60 @@ html1 = '''
         padding: 0px
       }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
     <script>
+        var route_details = [];
 
-  var flightPlanCoordinates = [
-    new google.maps.LatLng(37.772323, -122.214897),
-    new google.maps.LatLng(21.291982, -157.821856),
-    new google.maps.LatLng(-18.142599, 178.431),
-    new google.maps.LatLng(-27.46758, 153.027892)
-  ];
+        try{
+            var test_array = [1,2,3];
+
+            var num_hops = route_list.num_routes();
+            for(i = 0; i < num_hops; i++){
+                var details = {
+                    longitude: route_list.get_longitude(i),
+                    latitude: route_list.get_latitude(i),
+                    country: route_list.get_country(i),
+                    isp: route_list.get_ISP(i)
+                };
+                route_details[route_details.length] = details;
+            }
+        }catch(e){
+            alert(e);
+        }
+
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+    <script language="JavaScript">
+
+
+
+   var flightPlanCoordinates = [  ];
+
+
 
 function initialize() {
+alert("$$$ num hops = " + num_hops);
+alert("$$$ num elems = " + route_details.length);
+
+    for(i = 0; i < num_hops; i++){
+        var lat = parseFloat(route_details[i].latitude);
+        var long = parseFloat(route_details[i].longitude);
+        if (i == 0){
+            centreLat = lat;
+            centreLong = long;
+        }
+
+        alert("lat/long : " + lat + "/" + long);
+
+        flightPlanCoordinates[flightPlanCoordinates.length] = new google.maps.LatLng(lat, long);
+    }
+
   var mapOptions = {
     zoom: 3,
-    center: new google.maps.LatLng(0, -180),
+    center: new google.maps.LatLng(centreLat, centreLong),
     mapTypeId: google.maps.MapTypeId.TERRAIN
   };
+
 
   var map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
@@ -129,30 +167,29 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             # ---------------------------test code
             #
             #
-            with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'rb') as f:
-                route_list = pickle.load(f)
-
-            self.draw_visual_trace_route(route_list)
+            # with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'rb') as f:
+            #     route_list = pickle.load(f)
+            #
+            # self.draw_visual_trace_route(route_list)
 
 
             #-----------------------------------
 
 
+            #
+            #
+            self.statusbar.clearMessage()
+            self.statusbar.showMessage("Working...")
+            self.doLookupPushButton.setEnabled(False)
 
-            #
-            # self.statusbar.clearMessage()
-            # self.statusbar.showMessage("Working...")
-            # self.doLookupPushButton.setEnabled(False)
-            #
-            # url = self.get_url()
-            #
-            # url="www.cnn.com"
-            # if url:
-            #     # traceroute
-            #     self.perform_traceroute(url)
-            # else:
-            #     self.statusbar.showMessage("URL is empty", 5000)
-            #     self.doLookupPushButton.setEnabled(True)
+            url = self.get_url()
+
+            if url:
+                # traceroute
+                self.perform_traceroute(url)
+            else:
+                self.statusbar.showMessage("URL is empty", 5000)
+                self.doLookupPushButton.setEnabled(True)
 
 
         except Exception as e:
@@ -200,7 +237,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         web = QWebView()
         route_wrapper = RouteWrapper(route_list)
         web.page().mainFrame().addToJavaScriptWindowObject("route_list", route_wrapper)
-        web.setHtml(html)
+        web.setHtml(html1)
         hbx.addWidget(web)
         web.show()
 
@@ -229,9 +266,10 @@ class RouteWrapper(QtCore.QObject):
         self.routes = route_list
 
         print("in RouteWrapper init....routes = " + str(self.routes))
+        print("route size = " +str(len(self.routes)))
 
     @QtCore.pyqtSlot(result="int")
-    def size(self):
+    def num_routes(self):
         return len(self.routes)
 
     @QtCore.pyqtSlot(result=str)
@@ -241,8 +279,6 @@ class RouteWrapper(QtCore.QObject):
 
     @QtCore.pyqtSlot(int, result=str)
     def get_longitude(self, offset):
-
-        print("*******")
         row = self.routes[offset]
         return str(row["lon"])
 
@@ -251,10 +287,20 @@ class RouteWrapper(QtCore.QObject):
         row = self.routes[offset]
         return str(row["lat"])
 
+    @QtCore.pyqtSlot(int, result=str)
+    def get_ISP(self, offset):
+        row = self.routes[offset]
+        return str(row["isp"])
 
-    @QtCore.pyqtSlot(result=str)
-    def msg(self):
-        return "hello"
+    @QtCore.pyqtSlot(int, result=str)
+    def get_country(self, offset):
+        row = self.routes[offset]
+        return str(row["country"])
+
+    @QtCore.pyqtSlot(int, result=str)
+    def get_timezone(self, offset):
+        row = self.routes[offset]
+        return str(row["timezone"])
 
 app = QApplication(sys.argv)
 nu = VisualTraceRoute()
