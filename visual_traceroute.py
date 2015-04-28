@@ -43,7 +43,6 @@ html1 = '''
         var route_details = [];
 
         try{
-            var test_array = [1,2,3];
 
             var num_hops = route_list.num_routes();
             for(i = 0; i < num_hops; i++){
@@ -51,7 +50,8 @@ html1 = '''
                     longitude: route_list.get_longitude(i),
                     latitude: route_list.get_latitude(i),
                     country: route_list.get_country(i),
-                    isp: route_list.get_ISP(i)
+                    isp: route_list.get_ISP(i),
+                    ip: route_list.get_ip(i)
                 };
                 route_details[route_details.length] = details;
             }
@@ -71,9 +71,6 @@ html1 = '''
 
 
 function initialize() {
-alert("$$$ num hops = " + num_hops);
-alert("$$$ num elems = " + route_details.length);
-
     for(i = 0; i < num_hops; i++){
         var lat = parseFloat(route_details[i].latitude);
         var long = parseFloat(route_details[i].longitude);
@@ -81,9 +78,6 @@ alert("$$$ num elems = " + route_details.length);
             centreLat = lat;
             centreLong = long;
         }
-
-        alert("lat/long : " + lat + "/" + long);
-
         flightPlanCoordinates[flightPlanCoordinates.length] = new google.maps.LatLng(lat, long);
     }
 
@@ -108,10 +102,12 @@ alert("$$$ num elems = " + route_details.length);
   flightPath.setMap(map);
 
   for (i = 0; i < flightPlanCoordinates.length; i++) {
+      var route = route_details[i];
+      var mouse_over = route.ip;
       var marker = new google.maps.Marker({
           position: flightPlanCoordinates[i],
           map: map,
-          title: 'Hello World!'
+          title: mouse_over
       });
   }
 }
@@ -184,6 +180,8 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
             url = self.get_url()
 
+
+            url = "www.microsoft.com";
             if url:
                 # traceroute
                 self.perform_traceroute(url)
@@ -272,7 +270,7 @@ class RouteWrapper(QtCore.QObject):
     def num_routes(self):
         return len(self.routes)
 
-    @QtCore.pyqtSlot(result=str)
+    @QtCore.pyqtSlot(int, result=str)
     def get_ip(self, offset):
         row = self.routes[offset]
         return str(row["query"])
