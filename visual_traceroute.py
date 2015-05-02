@@ -25,7 +25,7 @@ import visual_traceroute_ui
 
 
 
-html1 = '''
+map_html = '''
 <!DOCTYPE html>
 <html>
   <head>
@@ -56,7 +56,7 @@ html1 = '''
                 route_details[route_details.length] = details;
             }
         }catch(e){
-            alert(e);
+            alert("%R%R%R%R%R%R"  + e);
         }
 
 
@@ -72,6 +72,8 @@ html1 = '''
 
 function initialize() {
     for(i = 0; i < num_hops; i++){
+
+        var ip = route_details[i].ip;
         var lat = parseFloat(route_details[i].latitude);
         var long = parseFloat(route_details[i].longitude);
         if (i == 0){
@@ -79,6 +81,9 @@ function initialize() {
             centreLong = long;
         }
         flightPlanCoordinates[flightPlanCoordinates.length] = new google.maps.LatLng(lat, long);
+
+
+
     }
 
   var mapOptions = {
@@ -121,22 +126,28 @@ google.maps.event.addDomListener(window, 'load', initialize);
 </html>
 '''
 
-html = '''
-<html><body>
-  <center>
-  <script language="JavaScript">
-    var a = route_list.size();
-    document.write('<p>size = ' + a + '</p>')
-    for (i = 0; i < a; i++) {
-        document.write('<p>in for loop...i=' + i + '</p>')
-        var l = route_list.get_longitude(i);
-        document.write('<p>longitude = ' + l + '</p>')
-    }
+enter_url_html = '''
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+    <p>Enter a URl to continue...</p>
+  </body>
+</html>'''
 
-  </script>
- </center>
-</body></html>
-'''
+working_html = '''
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+    <p>Working...</p>
+  </body>
+</html>'''
+
 
 
 class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_main_window):
@@ -152,43 +163,35 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         # set up async worker thread
         self.traceroute_handler = None
 
-        # self.connect(self, QtCore.SIGNAL("traceroute_line"), self.add_results)
-        # self.connect(self, QtCore.SIGNAL("traceroute_complete"), self.traceroute_complete)
+        self.route_list = None
+
+        # set up web view
+        hbx = QHBoxLayout()
+        self.map.setLayout(hbx)
+        self.web = QWebView()
+        self.web.setHtml(enter_url_html)
+        hbx.addWidget(self.web)
+        self.web.show()
+        self.web.connect(self.web.page().mainFrame(), QtCore.SIGNAL("javaScriptWindowObjectCleared"), self.add_route_list)
 
 
 
     def handle_do_it_button(self):
         try:
-
-            # ---------------------------test code
-            #
-            #
-            # with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'rb') as f:
-            #     route_list = pickle.load(f)
-            #
-            # self.draw_visual_trace_route(route_list)
-
-
-            #-----------------------------------
-
-
-            #
-            #
             self.statusbar.clearMessage()
             self.statusbar.showMessage("Working...")
             self.doLookupPushButton.setEnabled(False)
+            self.textOutput.clear()
 
             url = self.get_url()
 
-
             url = "www.microsoft.com";
             if url:
-                # traceroute
+                self.display_empty_visual_route_pane(working_html)
                 self.perform_traceroute(url)
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
                 self.doLookupPushButton.setEnabled(True)
-
 
         except Exception as e:
             QMessageBox.critical(self,
@@ -204,7 +207,6 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             QMessageBox.critical(self,
                          "Critical",
                          "Problem updating UI with traceroute text output : " + str(e))
-
 
 
     def traceroute_complete(self, route_list):
@@ -226,24 +228,24 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                          "Critical",
                          "Problem updating UI with traceroute text output : " + str(e))
 
-
+    def add_route_list(self):
+        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list)
 
     def draw_visual_trace_route(self, route_list):
-        # set up for visual traceroute
-        hbx = QHBoxLayout()
-        self.map.setLayout(hbx)
-        web = QWebView()
-        route_wrapper = RouteWrapper(route_list)
-        web.page().mainFrame().addToJavaScriptWindowObject("route_list", route_wrapper)
-        web.setHtml(html1)
-        hbx.addWidget(web)
-        web.show()
+
+        self.route_wrapper = RouteWrapper(route_list)
+        print("***setting up JS object...")
+        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_wrapper)
+        self.web.setHtml(map_html)
+
+    def display_empty_visual_route_pane(self, html):
+        self.web.setHtml(html)
 
 
     def perform_traceroute(self, url):
         try:
             self.traceroute_handler = TraceRoute(url)
-            #self.connect(self.traceroute_handler, QtCore.SIGNAL("process_terminated"), self.traceroute_complete)
+
             self.connect(self.traceroute_handler, QtCore.SIGNAL("traceroute_line"), self.add_results)
             self.connect(self.traceroute_handler, QtCore.SIGNAL("traceroute_complete"), self.traceroute_complete)
 
@@ -263,11 +265,10 @@ class RouteWrapper(QtCore.QObject):
         QtCore.QObject.__init__(self)
         self.routes = route_list
 
-        print("in RouteWrapper init....routes = " + str(self.routes))
-        print("route size = " +str(len(self.routes)))
-
     @QtCore.pyqtSlot(result="int")
     def num_routes(self):
+        for r in self.routes:
+            print ("py route : " + r["query"])
         return len(self.routes)
 
     @QtCore.pyqtSlot(int, result=str)
