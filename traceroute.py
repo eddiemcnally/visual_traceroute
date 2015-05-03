@@ -1,13 +1,12 @@
-from enum import Enum
 import subprocess
 import queue
 import time
+
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5.QtCore import *
+
 from geolocate import GeolocateQuery
-
-from PyQt4 import QtCore
-from PyQt4 import QtGui
-from PyQt4.QtCore import *
-
 
 class AsynchronousFileReader(QtCore.QThread):
     '''
@@ -33,11 +32,11 @@ class AsynchronousFileReader(QtCore.QThread):
 
 
 class TraceRoute(QtCore.QThread):
-    def __init__(self, ip_address):
+    def __init__(self, ip_address, signals):
         QThread.__init__(self)
         self.ip_address = ip_address
         self.retval = []
-
+        self.signals = signals
 
     def run(self):
         try:
@@ -58,7 +57,7 @@ class TraceRoute(QtCore.QThread):
                 while not stdout_queue.empty():
                     line = stdout_queue.get()
 
-                    self.emit(QtCore.SIGNAL("traceroute_line"),line)
+                    self.signals.trace_route_line_output_signal.emit(line)
 
                     line = line.strip()
 
@@ -84,6 +83,6 @@ class TraceRoute(QtCore.QThread):
                                        "Problem performing TraceRoute: Error = " + str(e))
 
         finally:
-            self.emit(QtCore.SIGNAL("traceroute_complete"),self.retval)
+            self.signals.trace_route_completed_signal.emit(self.retval)
 
 

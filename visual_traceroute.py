@@ -1,14 +1,13 @@
 import sys
 
-import pickle
+from PyQt5 import QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtWebKitWidgets import *
 
-from PyQt4 import QtCore
-from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
-import simplejson as json
+from PyQt5.QtCore import pyqtSignal
+
 from traceroute import TraceRoute
-
-from geolocate import GeolocateQuery
 import visual_traceroute_ui
 
 
@@ -40,10 +39,10 @@ map_html = '''
       }
     </style>
     <script>
+        alert("123")
         var route_details = [];
 
         try{
-
             var num_hops = route_list.num_routes();
             for(i = 0; i < num_hops; i++){
                 var details = {
@@ -155,6 +154,9 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         super(VisualTraceRoute, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
+        self.route_list_wrapper = RouteWrapper()
+
+        self.signals = VisualTraceRouteSignals()
 
         # set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
@@ -163,18 +165,19 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         # set up async worker thread
         self.traceroute_handler = None
 
-        self.route_list = None
-
         # set up web view
         hbx = QHBoxLayout()
         self.map.setLayout(hbx)
         self.web = QWebView()
-        self.web.setHtml(enter_url_html)
+        self.web.page().mainFrame().javaScriptWindowObjectCleared.connect(self.add_JS)
+        #self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
+        self.web.setHtml(map_html)
         hbx.addWidget(self.web)
         self.web.show()
-        self.web.connect(self.web.page().mainFrame(), QtCore.SIGNAL("javaScriptWindowObjectCleared"), self.add_route_list)
 
-
+    def add_JS(self):
+        print("**repopulating JS content")
+        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
 
     def handle_do_it_button(self):
         try:
@@ -228,26 +231,31 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                          "Critical",
                          "Problem updating UI with traceroute text output : " + str(e))
 
-    def add_route_list(self):
-        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list)
 
     def draw_visual_trace_route(self, route_list):
+        try:
+            self.route_list_wrapper.clear()
+            self.route_list_wrapper.add(route_list)
+            #self.web.setHtml(map_html)
 
-        self.route_wrapper = RouteWrapper(route_list)
-        print("***setting up JS object...")
-        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_wrapper)
-        self.web.setHtml(map_html)
+            print("***setting up JS object...")
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "*****Problem performing TraceRoute command : " + str(e))
+
+
 
     def display_empty_visual_route_pane(self, html):
-        self.web.setHtml(html)
-
+        #self.web.setHtml(html)
+        pass
 
     def perform_traceroute(self, url):
         try:
-            self.traceroute_handler = TraceRoute(url)
+            self.traceroute_handler = TraceRoute(url, self.signals)
 
-            self.connect(self.traceroute_handler, QtCore.SIGNAL("traceroute_line"), self.add_results)
-            self.connect(self.traceroute_handler, QtCore.SIGNAL("traceroute_complete"), self.traceroute_complete)
+            self.signals.trace_route_completed_signal.connect(self.traceroute_complete)
+            self.signals.trace_route_line_output_signal.connect(self.add_results)
 
             self.traceroute_handler.start()
         except Exception as e:
@@ -260,9 +268,21 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         return self.urlLineEdit.text()
 
 
+class VisualTraceRouteSignals(QtCore.QObject):
+    trace_route_line_output_signal = pyqtSignal()
+    trace_route_completed_signal = pyqtSignal()
+
+
+
 class RouteWrapper(QtCore.QObject):
-    def __init__(self, route_list):
+    def __init__(self):
         QtCore.QObject.__init__(self)
+        self.routes = []
+
+    def clear(self):
+        self.routes = []
+
+    def add(self, route_list):
         self.routes = route_list
 
     @QtCore.pyqtSlot(result="int")
@@ -300,6 +320,9 @@ class RouteWrapper(QtCore.QObject):
     def get_timezone(self, offset):
         row = self.routes[offset]
         return str(row["timezone"])
+
+
+
 
 app = QApplication(sys.argv)
 nu = VisualTraceRoute()

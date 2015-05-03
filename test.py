@@ -1,5 +1,7 @@
 import sys
+
 from PyQt4 import QtCore, QtGui, QtWebKit
+
 
 """Html snippet."""
 html = """
@@ -23,7 +25,6 @@ class StupidClass(QtCore.QObject):
 
     def _pyVersion(self):
         """Return the Python version."""
-        print("HHH")
         return sys.version
 
     """Python interpreter version property."""
@@ -47,4 +48,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
