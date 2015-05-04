@@ -15,6 +15,7 @@ html = """
 </body></html>
 """
 
+
 class StupidClass(QtCore.QObject):
     """Simple class with one slot and one read-only property."""
 
@@ -29,6 +30,7 @@ class StupidClass(QtCore.QObject):
 
     """Python interpreter version property."""
     pyVersion = QtCore.pyqtProperty(str, fget=_pyVersion)
+
 
 def main():
     app = QtGui.QApplication(sys.argv)
@@ -45,6 +47,7 @@ def main():
     window.show()
 
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

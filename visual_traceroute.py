@@ -3,9 +3,9 @@ import sys
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import *
-
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 
 from traceroute import TraceRoute
 import visual_traceroute_ui
@@ -13,15 +13,12 @@ import visual_traceroute_ui
 
 # todo
 # - unit testing
-# - migrate to Qt5
 # - only works with IP4, look at IP6
 # - fix up invalid url handling
 # - move stuff to config file (commands, google maps key, etc)
 # - documentation
 # - async handling of stderr (same as stdout)
-# - add "are you sure" to the close button
-# - fix up traceroute output parsing
-
+# - move html into separate file
 
 
 map_html = '''
@@ -55,7 +52,7 @@ map_html = '''
                 route_details[route_details.length] = details;
             }
         }catch(e){
-            alert("%R%R%R%R%R%R"  + e);
+            alert(e);
         }
 
 
@@ -148,17 +145,21 @@ working_html = '''
 </html>'''
 
 
-
 class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_main_window):
     def __init__(self):
         super(VisualTraceRoute, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
+        self.setWindowTitle("Visual TraceRoute")
+        self.setWindowIcon(QIcon('network-icon.png'))
         self.route_list_wrapper = RouteWrapper()
 
         # set up buttons
+        self.doLookupPushButton.setToolTip("start Trace Route")
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
-        self.closePushButton.clicked.connect(app.exit)
+
+        self.closePushButton.setToolTip("Exit application")
+        self.closePushButton.clicked.connect(self.close)
 
         # set up async worker thread
         self.traceroute_handler = None
@@ -193,15 +194,21 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             url = "www.microsoft.com";
             if url:
                 self.display_empty_visual_route_pane(working_html)
-                self.perform_traceroute(url)
+                self.traceroute_handler = TraceRoute(url)
+
+                self.traceroute_handler.traceRouteTerminated.connect(self.traceroute_complete)
+                self.traceroute_handler.textOutputReady.connect(self.add_results)
+
+                self.traceroute_handler.start()
+
             else:
                 self.statusbar.showMessage("URL is empty", 5000)
                 self.doLookupPushButton.setEnabled(True)
 
         except Exception as e:
             QMessageBox.critical(self,
-                         "Critical",
-                         "Problem performing network lookup : " + str(e))
+                                 "Critical",
+                                 "Problem performing network lookup : " + str(e))
 
     @pyqtSlot(str)
     def add_results(self, command_output):
@@ -210,15 +217,15 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             self.textOutput.insertPlainText(command_output)
         except Exception as e:
             QMessageBox.critical(self,
-                         "Critical",
-                         "Problem updating UI with traceroute text output : " + str(e))
+                                 "Critical",
+                                 "Problem updating UI with traceroute text output : " + str(e))
 
     @pyqtSlot(object)
     def traceroute_complete(self, route_list):
 
         try:
             # with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'wb') as f:
-            #      pickle.dump(route_list, f)
+            # pickle.dump(route_list, f)
 
             self.doLookupPushButton.setEnabled(True)
             self.doLookupPushButton.update()
@@ -226,51 +233,37 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
             self.statusbar.showMessage("Complete!")
 
             print(route_list)
-            self.draw_visual_trace_route(route_list)
 
-        except Exception as e:
-                QMessageBox.critical(self,
-                         "Critical",
-                         "Problem updating UI with traceroute text output : " + str(e))
-
-
-    def draw_visual_trace_route(self, route_list):
-        try:
             self.route_list_wrapper.clear()
             self.route_list_wrapper.add(route_list)
             self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
 
             self.web.setHtml(map_html)
 
-            print("***setting up JS object...")
         except Exception as e:
-            QMessageBox.critical(self,
+                QMessageBox.critical(self,
                                  "Critical",
                                  "*****Problem performing TraceRoute command : " + str(e))
 
 
-
     def display_empty_visual_route_pane(self, html):
-        #self.web.setHtml(html)
+        # self.web.setHtml(html)
         pass
-
-    def perform_traceroute(self, url):
-        try:
-            self.traceroute_handler = TraceRoute(url)
-
-            self.traceroute_handler.traceRouteTerminated.connect(self.traceroute_complete)
-            self.traceroute_handler.textOutputReady.connect(self.add_results)
-
-            self.traceroute_handler.start()
-        except Exception as e:
-            QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem performing TraceRoute command : " + str(e))
 
     def get_url(self):
         # todo - validate url input and prompt dialog
         return self.urlLineEdit.text()
 
+    def closeEvent(self, event):
+
+        quit_msg = "Are you sure you want to exit the program?"
+        reply = QMessageBox.question(self, 'Message',
+                                     quit_msg, QMessageBox.Yes, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 
 class RouteWrapper(QtCore.QObject):
@@ -287,7 +280,7 @@ class RouteWrapper(QtCore.QObject):
     @pyqtSlot(result="int")
     def num_routes(self):
         for r in self.routes:
-            print ("py route : " + r["query"])
+            print("py route : " + r["query"])
         return len(self.routes)
 
     @pyqtSlot(int, result=str)
@@ -319,8 +312,6 @@ class RouteWrapper(QtCore.QObject):
     def get_timezone(self, offset):
         row = self.routes[offset]
         return str(row["timezone"])
-
-
 
 
 app = QApplication(sys.argv)

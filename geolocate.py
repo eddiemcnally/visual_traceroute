@@ -1,18 +1,17 @@
-
 import requests
 
 
 class GeolocateQuery():
-    '''Class to take an IP address and/or URL, and retrieve goelocate information'''
+    '''Class to take an IP address and retrieve geolocate information'''
 
     def __init__(self, ip_addr):
         self.ip_addr = ip_addr
 
     def do_lookup(self):
         query_url = 'http://ip-api.com/json/' + self.ip_addr
-        self.reply = requests.get(query_url).json()
+        reply = requests.get(query_url).json()
 
-        if self.reply["status"] != "success":
+        if reply["status"] != "success":
             return None
 
-        return self.reply
+        return reply

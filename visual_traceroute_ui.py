@@ -3,11 +3,12 @@
 # Form implementation generated from reading ui file 'visual_traceroute_ui.ui'
 #
 # Created: Sun May  3 15:58:00 2015
-#      by: PyQt5 UI code generator 5.3.2
+# by: PyQt5 UI code generator 5.3.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_visual_traceroute_main_window(object):
     def setupUi(self, visual_traceroute_main_window):
@@ -70,7 +71,8 @@ class Ui_visual_traceroute_main_window(object):
         self.urlLineEdit.setPlaceholderText(_translate("visual_traceroute_main_window", "Enter URL or IP Address"))
         self.doLookupPushButton.setText(_translate("visual_traceroute_main_window", "Do it"))
         self.closePushButton.setText(_translate("visual_traceroute_main_window", "Close"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Text), _translate("visual_traceroute_main_window", "Text"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Text),
+                                  _translate("visual_traceroute_main_window", "Text"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.map), _translate("visual_traceroute_main_window", "Map"))
         self.menuFile.setTitle(_translate("visual_traceroute_main_window", "File"))
         self.menuHelp.setTitle(_translate("visual_traceroute_main_window", "Help"))
