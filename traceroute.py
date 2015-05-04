@@ -32,11 +32,13 @@ class AsynchronousFileReader(QtCore.QThread):
 
 
 class TraceRoute(QtCore.QThread):
-    def __init__(self, ip_address, signals):
+    textOutputReady = QtCore.pyqtSignal(str)
+    traceRouteTerminated = QtCore.pyqtSignal(object)
+
+    def __init__(self, ip_address):
         QThread.__init__(self)
         self.ip_address = ip_address
         self.retval = []
-        self.signals = signals
 
     def run(self):
         try:
@@ -57,7 +59,7 @@ class TraceRoute(QtCore.QThread):
                 while not stdout_queue.empty():
                     line = stdout_queue.get()
 
-                    self.signals.trace_route_line_output_signal.emit(line)
+                    self.textOutputReady.emit(str(line))
 
                     line = line.strip()
 
@@ -83,6 +85,6 @@ class TraceRoute(QtCore.QThread):
                                        "Problem performing TraceRoute: Error = " + str(e))
 
         finally:
-            self.signals.trace_route_completed_signal.emit(self.retval)
+            self.traceRouteTerminated.emit(self.retval)
 
 

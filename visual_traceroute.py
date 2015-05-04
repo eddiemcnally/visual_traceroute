@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebKitWidgets import *
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from traceroute import TraceRoute
 import visual_traceroute_ui
@@ -39,7 +39,7 @@ map_html = '''
       }
     </style>
     <script>
-        alert("123")
+
         var route_details = [];
 
         try{
@@ -156,8 +156,6 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         self.statusbar.show()
         self.route_list_wrapper = RouteWrapper()
 
-        self.signals = VisualTraceRouteSignals()
-
         # set up buttons
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
         self.closePushButton.clicked.connect(app.exit)
@@ -175,10 +173,14 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         hbx.addWidget(self.web)
         self.web.show()
 
+
+    @pyqtSlot()
     def add_JS(self):
         print("**repopulating JS content")
         self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
 
+
+    @pyqtSlot()
     def handle_do_it_button(self):
         try:
             self.statusbar.clearMessage()
@@ -201,7 +203,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                          "Critical",
                          "Problem performing network lookup : " + str(e))
 
-
+    @pyqtSlot(str)
     def add_results(self, command_output):
         try:
             self.textOutput.moveCursor(QTextCursor.End)
@@ -211,7 +213,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
                          "Critical",
                          "Problem updating UI with traceroute text output : " + str(e))
 
-
+    @pyqtSlot(object)
     def traceroute_complete(self, route_list):
 
         try:
@@ -252,10 +254,10 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
     def perform_traceroute(self, url):
         try:
-            self.traceroute_handler = TraceRoute(url, self.signals)
+            self.traceroute_handler = TraceRoute(url)
 
-            self.signals.trace_route_completed_signal.connect(self.traceroute_complete)
-            self.signals.trace_route_line_output_signal.connect(self.add_results)
+            self.traceroute_handler.traceRouteTerminated.connect(self.traceroute_complete)
+            self.traceroute_handler.textOutputReady.connect(self.add_results)
 
             self.traceroute_handler.start()
         except Exception as e:
@@ -266,11 +268,6 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
     def get_url(self):
         # todo - validate url input and prompt dialog
         return self.urlLineEdit.text()
-
-
-class VisualTraceRouteSignals(QtCore.QObject):
-    trace_route_line_output_signal = pyqtSignal()
-    trace_route_completed_signal = pyqtSignal()
 
 
 
@@ -285,38 +282,38 @@ class RouteWrapper(QtCore.QObject):
     def add(self, route_list):
         self.routes = route_list
 
-    @QtCore.pyqtSlot(result="int")
+    @pyqtSlot(result="int")
     def num_routes(self):
         for r in self.routes:
             print ("py route : " + r["query"])
         return len(self.routes)
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_ip(self, offset):
         row = self.routes[offset]
         return str(row["query"])
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_longitude(self, offset):
         row = self.routes[offset]
         return str(row["lon"])
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_latitude(self, offset):
         row = self.routes[offset]
         return str(row["lat"])
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_ISP(self, offset):
         row = self.routes[offset]
         return str(row["isp"])
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_country(self, offset):
         row = self.routes[offset]
         return str(row["country"])
 
-    @QtCore.pyqtSlot(int, result=str)
+    @pyqtSlot(int, result=str)
     def get_timezone(self, offset):
         row = self.routes[offset]
         return str(row["timezone"])
