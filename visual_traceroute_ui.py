@@ -2,13 +2,12 @@
 
 # Form implementation generated from reading ui file 'visual_traceroute_ui.ui'
 #
-# Created: Sun May  3 15:58:00 2015
-# by: PyQt5 UI code generator 5.3.2
+# Created: Mon May  4 21:40:33 2015
+#      by: PyQt5 UI code generator 5.3.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_visual_traceroute_main_window(object):
     def setupUi(self, visual_traceroute_main_window):
@@ -55,9 +54,12 @@ class Ui_visual_traceroute_main_window(object):
         self.statusbar = QtWidgets.QStatusBar(visual_traceroute_main_window)
         self.statusbar.setObjectName("statusbar")
         visual_traceroute_main_window.setStatusBar(self.statusbar)
-        self.actionAbout = QtWidgets.QAction(visual_traceroute_main_window)
-        self.actionAbout.setObjectName("actionAbout")
-        self.menuHelp.addAction(self.actionAbout)
+        self.aboutMenuItem = QtWidgets.QAction(visual_traceroute_main_window)
+        self.aboutMenuItem.setObjectName("aboutMenuItem")
+        self.exitMenuItem = QtWidgets.QAction(visual_traceroute_main_window)
+        self.exitMenuItem.setObjectName("exitMenuItem")
+        self.menuFile.addAction(self.exitMenuItem)
+        self.menuHelp.addAction(self.aboutMenuItem)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
@@ -71,10 +73,10 @@ class Ui_visual_traceroute_main_window(object):
         self.urlLineEdit.setPlaceholderText(_translate("visual_traceroute_main_window", "Enter URL or IP Address"))
         self.doLookupPushButton.setText(_translate("visual_traceroute_main_window", "Do it"))
         self.closePushButton.setText(_translate("visual_traceroute_main_window", "Close"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Text),
-                                  _translate("visual_traceroute_main_window", "Text"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Text), _translate("visual_traceroute_main_window", "Text"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.map), _translate("visual_traceroute_main_window", "Map"))
         self.menuFile.setTitle(_translate("visual_traceroute_main_window", "File"))
         self.menuHelp.setTitle(_translate("visual_traceroute_main_window", "Help"))
-        self.actionAbout.setText(_translate("visual_traceroute_main_window", "About"))
+        self.aboutMenuItem.setText(_translate("visual_traceroute_main_window", "About"))
+        self.exitMenuItem.setText(_translate("visual_traceroute_main_window", "Exit"))
 

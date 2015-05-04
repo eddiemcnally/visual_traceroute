@@ -33,6 +33,11 @@ class AsynchronousFileReader(QtCore.QThread):
 
 
 class TraceRoute(QtCore.QThread):
+    """
+    Threaded trace route command handler.
+    Issues a trace route command and parses the text output.
+    """
+
     textOutputReady = QtCore.pyqtSignal(str)
     traceRouteTerminated = QtCore.pyqtSignal(object)
 

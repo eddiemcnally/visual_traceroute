@@ -115,20 +115,26 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="exitMenuItem"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
+    <addaction name="aboutMenuItem"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionAbout">
+  <action name="aboutMenuItem">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="exitMenuItem">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

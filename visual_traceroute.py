@@ -1,4 +1,5 @@
 import sys
+import urllib3
 
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
@@ -13,11 +14,11 @@ import visual_traceroute_ui
 
 # todo
 # - unit testing
+# - add "About" box
 # - only works with IP4, look at IP6
 # - fix up invalid url handling
 # - move stuff to config file (commands, google maps key, etc)
 # - documentation
-# - async handling of stderr (same as stdout)
 # - move html into separate file
 
 
@@ -41,6 +42,13 @@ map_html = '''
 
         try{
             var num_hops = route_list.num_routes();
+            var debug = "";
+            for(i = 0; i < num_hops;i++){
+                debug = debug + route_list.get_ip(i) + " : ";
+            }
+            alert("From route_list..." + debug);
+
+
             for(i = 0; i < num_hops; i++){
                 var details = {
                     longitude: route_list.get_longitude(i),
@@ -77,10 +85,9 @@ function initialize() {
             centreLong = long;
         }
         flightPlanCoordinates[flightPlanCoordinates.length] = new google.maps.LatLng(lat, long);
-
-
-
     }
+
+    alert("flightPlanCoordinates size : " + flightPlanCoordinates.length);
 
   var mapOptions = {
     zoom: 3,
@@ -122,16 +129,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 </html>
 '''
 
-enter_url_html = '''
-<!DOCTYPE html>
-<html>
-  <head>
-  </head>
-  <body>
-    <div id="map-canvas"></div>
-    <p>Enter a URl to continue...</p>
-  </body>
-</html>'''
 
 working_html = '''
 <!DOCTYPE html>
@@ -140,13 +137,22 @@ working_html = '''
   </head>
   <body>
     <div id="map-canvas"></div>
-    <p>Working...</p>
+    <font size="4" face="verdana" >Working...</font>
   </body>
 </html>'''
 
 
 class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_main_window):
+    """ Performs a trace route on a given IP address, and displays
+        as a raw text output and an overlay on top of Google Maps.
+
+        This makes use of http://ip-api.com to determine the latitude and longitude (among other
+        attributes) of each IP address in the route.
+    """
     def __init__(self):
+        """
+        Sets up the initial windows
+        """
         super(VisualTraceRoute, self).__init__()
         self.setupUi(self)
         self.statusbar.show()
@@ -157,9 +163,13 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         # set up buttons
         self.doLookupPushButton.setToolTip("start Trace Route")
         self.doLookupPushButton.clicked.connect(self.handle_do_it_button)
-
+        self.doLookupPushButton.setAutoDefault(True)
         self.closePushButton.setToolTip("Exit application")
         self.closePushButton.clicked.connect(self.close)
+
+        # set up menu handlers
+        self.aboutMenuItem.triggered.connect(self.on_about)
+        self.exitMenuItem.triggered.connect(self.close)
 
         # set up async worker thread
         self.traceroute_handler = None
@@ -170,19 +180,26 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         self.web = QWebView()
         self.web.page().mainFrame().javaScriptWindowObjectCleared.connect(self.add_JS)
         self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
-        self.web.setHtml(map_html)
         hbx.addWidget(self.web)
         self.web.show()
 
 
     @pyqtSlot()
     def add_JS(self):
+        """ Needed to repopulate the Javascript with the python objects each time the web page is refreshed
+
+        :return: None
+        """
         print("**repopulating JS content")
         self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
 
 
     @pyqtSlot()
     def handle_do_it_button(self):
+        """ Called when the 'DoIt' button is pressed.
+            Reads the entered URL, validates it and initiates the trace route command
+        :return: None
+        """
         try:
             self.statusbar.clearMessage()
             self.statusbar.showMessage("Working...")
@@ -191,27 +208,35 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
             url = self.get_url()
 
-            url = "www.microsoft.com";
             if url:
-                self.display_empty_visual_route_pane(working_html)
+                self.web.setHtml(working_html)
                 self.traceroute_handler = TraceRoute(url)
 
+                # set up callbacks for the trace route output
                 self.traceroute_handler.traceRouteTerminated.connect(self.traceroute_complete)
                 self.traceroute_handler.textOutputReady.connect(self.add_results)
 
                 self.traceroute_handler.start()
 
             else:
-                self.statusbar.showMessage("URL is empty", 5000)
+                self.statusbar.showMessage("URL is invalid", 5000)
                 self.doLookupPushButton.setEnabled(True)
+
+                QMessageBox.information(self, "Empty Field",
+                                    "The entered URL is invalid")
 
         except Exception as e:
             QMessageBox.critical(self,
                                  "Critical",
-                                 "Problem performing network lookup : " + str(e))
+                                 "Problem initiating trace route : " + str(e))
 
     @pyqtSlot(str)
     def add_results(self, command_output):
+        """
+        Accepts a single line of text from the traceroute command, and displays on the text view
+        :param command_output: a single line from the traceroute output
+        :return: None
+        """
         try:
             self.textOutput.moveCursor(QTextCursor.End)
             self.textOutput.insertPlainText(command_output)
@@ -222,17 +247,17 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
     @pyqtSlot(object)
     def traceroute_complete(self, route_list):
-
+        """
+        Called when the trace route command is complete.
+        Takes the entire route list, passes it to the Javascript and draws the visual trace route
+        :param route_list: a list of IP addresses
+        :return: None
+        """
         try:
-            # with open('/home/eddie/dev/projects/python/visual_traceroute/test/test_route_data', 'wb') as f:
-            # pickle.dump(route_list, f)
-
             self.doLookupPushButton.setEnabled(True)
             self.doLookupPushButton.update()
             self.statusbar.clearMessage()
             self.statusbar.showMessage("Complete!")
-
-            print(route_list)
 
             self.route_list_wrapper.clear()
             self.route_list_wrapper.add(route_list)
@@ -243,19 +268,34 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         except Exception as e:
                 QMessageBox.critical(self,
                                  "Critical",
-                                 "*****Problem performing TraceRoute command : " + str(e))
+                                 "Problem performing TraceRoute command : " + str(e))
 
+    @pyqtSlot()
+    def on_about(self):
+        box = QMessageBox.information(self, "About Visual TraceRoute", "Visual trace route")
 
-    def display_empty_visual_route_pane(self, html):
-        # self.web.setHtml(html)
-        pass
 
     def get_url(self):
-        # todo - validate url input and prompt dialog
-        return self.urlLineEdit.text()
+        """
+        Validates the entered URL
+        :return: None (if invalid), the url otherwise
+        """
+        text_url = self.urlLineEdit.text()
+
+        try:
+            urllib3.urlopen(text_url)
+        except:
+            return None
+
+        return text_url
+
 
     def closeEvent(self, event):
-
+        """
+        Intercepts the app exit event
+        :param event: incoming close event
+        :return: None
+        """
         quit_msg = "Are you sure you want to exit the program?"
         reply = QMessageBox.question(self, 'Message',
                                      quit_msg, QMessageBox.Yes, QMessageBox.No)
@@ -267,6 +307,9 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
 
 
 class RouteWrapper(QtCore.QObject):
+    """
+    A class used for holding attributes that are passed into the QWebView Javascript container
+    """
     def __init__(self):
         QtCore.QObject.__init__(self)
         self.routes = []
@@ -312,6 +355,8 @@ class RouteWrapper(QtCore.QObject):
     def get_timezone(self, offset):
         row = self.routes[offset]
         return str(row["timezone"])
+
+
 
 
 app = QApplication(sys.argv)
