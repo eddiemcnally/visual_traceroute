@@ -168,7 +168,7 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         self.map.setLayout(hbx)
         self.web = QWebView()
         self.web.page().mainFrame().javaScriptWindowObjectCleared.connect(self.add_JS)
-        #self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
+        self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
         self.web.setHtml(map_html)
         hbx.addWidget(self.web)
         self.web.show()
@@ -238,7 +238,9 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         try:
             self.route_list_wrapper.clear()
             self.route_list_wrapper.add(route_list)
-            #self.web.setHtml(map_html)
+            self.web.page().mainFrame().addToJavaScriptWindowObject("route_list", self.route_list_wrapper)
+
+            self.web.setHtml(map_html)
 
             print("***setting up JS object...")
         except Exception as e:

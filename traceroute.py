@@ -3,10 +3,11 @@ import queue
 import time
 
 from PyQt5 import QtCore
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import *
 
 from geolocate import GeolocateQuery
+
 
 class AsynchronousFileReader(QtCore.QThread):
     '''
