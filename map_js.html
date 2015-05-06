@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+        <title>Overlay geolocated IPs</title>
+        <style>
+            html, body, #map-canvas {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+            }
+        </style>
+        <script>
+            var route_details = [];
+
+            try{
+                var num_hops = route_list.num_routes();
+                var debug = "";
+                for(i = 0; i < num_hops;i++){
+                    debug = debug + route_list.get_ip(i) + " : ";
+                }
+
+               for(i = 0; i < num_hops; i++){
+                    var details = {
+                        longitude: parseFloat(route_list.get_longitude(i)),
+                        latitude: parseFloat(route_list.get_latitude(i)),
+                        country: route_list.get_country(i),
+                        isp: route_list.get_ISP(i),
+                        ip: route_list.get_ip(i),
+                        timezone: route_list.get_timezone(i)
+                    };
+                    route_details[route_details.length] = details;
+                }
+
+
+                // ** Problem with Google Maps API:
+                // if markers have the same lat/long, then only a single
+                // marker will be displayed. Search net for the various solutions.
+                // One (simple) solution is to add a small number to the lat/long to force different markers.
+
+                for (i = 0; i < route_details.length; i++){
+                    var lat = route_details[i].latitude;
+                    var long = route_details[i].longitude;
+
+                    for (j = 0; j < route_details.length; j++){
+                        if (i == j){
+                            continue;
+                        }
+                        var test_lat = route_details[j].latitude;
+                        var test_long = route_details[j].longitude;
+
+                        if (lat == test_lat && long == test_long){
+                            route_details[j].latitude += 0.001;
+                            route_details[j].longitude += 0.001;
+                        }
+                    }
+                }
+            }catch(e){
+                alert(e);
+            }
+
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+        <script language="JavaScript">
+            var nodes = [  ];
+
+            function initialize() {
+
+                for(i = 0; i < num_hops; i++){
+                    var ip = route_details[i].ip;
+                    var lat = route_details[i].latitude;
+                    var long = route_details[i].longitude;
+                    if (i == 0){
+                        // centre the map on the first IP address
+                        centreLat = lat;
+                        centreLong = long;
+                    }
+                    nodes[nodes.length] = new google.maps.LatLng(lat, long);
+                }
+
+                var mapOptions = {
+                    zoom: 3,
+                    center: new google.maps.LatLng(centreLat, centreLong),
+                    mapTypeId: google.maps.MapTypeId.TERRAIN
+                };
+
+
+                var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+                var routePath = new google.maps.Polyline({
+                    path: nodes,
+                    geodesic: false,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                    });
+
+                routePath.setMap(map);
+
+                for (i = 0; i < nodes.length; i++) {
+                    var route = route_details[i];
+                    var mouse_over = route.ip;
+                    var marker = new google.maps.Marker({
+                        position: nodes[i],
+                        map: map,
+                        title: mouse_over
+                        });
+                    }
+                }
+
+            google.maps.event.addDomListener(window, 'load', initialize);
+
+        </script>
+    </head>
+    <body>
+        <div id="map-canvas"></div>
+    </body>
+</html>

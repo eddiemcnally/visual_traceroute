@@ -5,6 +5,7 @@ class GeolocateQuery():
     """
     Uses http://ip-api.com to retrieve geolocation data for an IP address
     """
+
     def __init__(self, ip_addr):
         self.ip_addr = ip_addr
 
