@@ -3,7 +3,8 @@ import queue
 import time
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import  QThread
 
 from geolocate import GeolocateQuery
 
@@ -83,6 +84,11 @@ class TraceRoute(QtCore.QThread):
                                 geo_info = geolocate.do_lookup()
                                 if geo_info is not None:
                                     self.retval.append(geo_info)
+        except Exception as e:
+            QMessageBox.critical(self,
+                                 "Critical",
+                                 "Problem initiating trace route : " + str(e))
+
         finally:
             self.traceRouteTerminated.emit(self.retval)
 
