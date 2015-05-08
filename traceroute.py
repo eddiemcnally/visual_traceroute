@@ -2,9 +2,9 @@ import subprocess
 import queue
 import time
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import  QThread
+from PyQt5.QtCore import QThread
 
 from geolocate import GeolocateQuery
 
@@ -42,9 +42,12 @@ class TraceRoute(QtCore.QThread):
     traceRouteTerminated = QtCore.pyqtSignal(object)
 
     def __init__(self, ip_address):
+        assert len(ip_address) >= 8
+
         QThread.__init__(self)
         self.ip_address = ip_address
         self.retval = []
+        self.traceRouteUtils = TraceRouteUtils()
 
     def run(self):
         try:
@@ -67,29 +70,34 @@ class TraceRoute(QtCore.QThread):
 
                     self.textOutputReady.emit(str(line))
 
-                    line = line.strip()
-
-                    if line[:1] in '0123456789':
-                        # this line has a route
-                        if "*" not in line:
-                            # line has a valid route IP
-                            if ')' in line and '(' in line:
-                                # find IP address and save it
-                                start_idx = line.index('(')
-                                end_idx = line.index(')')
-                                ip_addr = line[start_idx + 1:end_idx]
-
-                                # geolocate the ip address
-                                geolocate = GeolocateQuery(ip_addr)
-                                geo_info = geolocate.do_lookup()
-                                if geo_info is not None:
-                                    self.retval.append(geo_info)
+                    # this line has a route
+                    ip_addr = self.traceRouteUtils.extract_ip_address(line)
+                    if ip_addr is not None:
+                        # geolocate the ip address
+                        geolocate = GeolocateQuery(ip_addr)
+                        geo_info = geolocate.do_lookup()
+                        if geo_info is not None:
+                            self.retval.append(geo_info)
         except Exception as e:
-            QMessageBox.critical(self,
+            QtWidgets.QMessageBox.critical(self,
                                  "Critical",
                                  "Problem initiating trace route : " + str(e))
-
         finally:
             self.traceRouteTerminated.emit(self.retval)
 
 
+
+class TraceRouteUtils:
+    def extract_ip_address(self,line):
+        line = line.strip()
+
+        if line[:1] in '0123456789':
+            if "* * *" not in line:
+                # line has a valid route IP
+                if ')' in line and '(' in line:
+                    # find IP address and save it
+                    start_idx = line.index('(')
+                    end_idx = line.index(')')
+                    ip_addr = line[start_idx + 1:end_idx]
+                    return ip_addr
+        return None
