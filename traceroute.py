@@ -3,7 +3,6 @@ import queue
 import time
 
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread
 
 from geolocate import GeolocateQuery
@@ -80,15 +79,18 @@ class TraceRoute(QtCore.QThread):
                             self.retval.append(geo_info)
         except Exception as e:
             QtWidgets.QMessageBox.critical(self,
-                                 "Critical",
-                                 "Problem initiating trace route : " + str(e))
+                                           "Critical",
+                                           "Problem initiating trace route : " + str(e))
         finally:
             self.traceRouteTerminated.emit(self.retval)
 
 
-
 class TraceRouteUtils:
-    def extract_ip_address(self,line):
+    '''
+    Parses the line of output text and extracts an ip address (if one exists)
+    '''
+
+    def extract_ip_address(self, line):
         line = line.strip()
 
         if line[:1] in '0123456789':

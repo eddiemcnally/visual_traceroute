@@ -12,12 +12,8 @@ import visual_traceroute_ui
 
 
 # todo
-# - unit testing
 # - only works with IP4, look at IP6
-# - move stuff to config file (commands, google maps key, etc)
-# - documentation
 # - look at fixing hack for multiple markers on google maps
-
 
 
 class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_main_window):
@@ -43,8 +39,6 @@ class VisualTraceRoute(QMainWindow, visual_traceroute_ui.Ui_visual_traceroute_ma
         self.doLookupPushButton.setToolTip("start Trace Route")
         self.doLookupPushButton.clicked.connect(self.onClickDoItButton)
         self.doLookupPushButton.setAutoDefault(True)
-        self.closePushButton.setToolTip("Exit application")
-        self.closePushButton.clicked.connect(self.close)
 
         # set up menu handlers
         self.aboutMenuItem.triggered.connect(self.onAboutClicked)

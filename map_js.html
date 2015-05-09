@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-        <meta charset="utf-8">
-        <title>Overlay geolocated IPs</title>
-        <style>
-            html, body, #map-canvas {
-            height: 100%;
-            margin: 0px;
-            padding: 0px
-            }
-        </style>
-        <script>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Overlay geolocated IPs</title>
+    <style>
+        html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+        }
+    </style>
+    <script>
             var route_details = [];
 
             try{
@@ -60,9 +60,11 @@
                 alert(e);
             }
 
-        </script>
-        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
-        <script language="JavaScript">
+
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+    <script language="JavaScript">
             var nodes = [  ];
 
             function initialize() {
@@ -111,9 +113,11 @@
 
             google.maps.event.addDomListener(window, 'load', initialize);
 
-        </script>
-    </head>
-    <body>
-        <div id="map-canvas"></div>
-    </body>
+
+
+    </script>
+</head>
+<body>
+<div id="map-canvas"></div>
+</body>
 </html>
